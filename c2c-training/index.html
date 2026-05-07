@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="C2C">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="./manifest.json">
+<title>C2C Training 2027</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
+:root {
+  --bg:#0a0a0a; --bg2:#111; --bg3:#161616; --bg4:#1c1c1c;
+  --border:#1e1e1e; --border2:#252525;
+  --text:#e8e8e8; --text2:#888; --text3:#444;
+  --accent:#e8ff47; --accent-dim:rgba(232,255,71,0.08); --accent-border:rgba(232,255,71,0.25);
+  --run:#4daa7e; --run-bg:#0d1f18; --run-border:#1a3328;
+  --bike:#5a9fd4; --bike-bg:#0d1f2d; --bike-border:#1a2f42;
+  --paddle:#c49a3c; --paddle-bg:#1f1a0d; --paddle-border:#332a12;
+  --gym:#9b6dd6; --gym-bg:#180d1f; --gym-border:#2a1a3a;
+  --acl:#e05555; --acl-bg:#1a0a0a; --acl-border:#3a1010;
+  --brick:#e07855; --brick-bg:#1f120d; --brick-border:#3a2015;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+
+/* INSTALL BANNER */
+#install-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#111;border-top:1px solid var(--border2);padding:12px 14px;align-items:center;gap:10px}
+#install-banner.show{display:flex}
+.ib-text{flex:1;font-size:12px;color:var(--text2);line-height:1.4}
+.ib-text strong{color:var(--text)}
+.ib-btn{font-family:'DM Mono',monospace;font-size:10px;padding:7px 14px;border-radius:4px;background:var(--accent);color:#0a0a0a;border:none;cursor:pointer;font-weight:500}
+.ib-x{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:4px}
+
+/* SCREENS */
+.screen{position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);transition:transform 0.28s cubic-bezier(0.4,0,0.2,1),opacity 0.28s}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none}
+.screen.slide-left{transform:translateX(-25%);opacity:0;pointer-events:none}
+
+/* NAV */
+.nav{display:flex;align-items:center;gap:10px;padding:52px 14px 10px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)}
+.nav-back{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:6px 12px;cursor:pointer}
+.nav-back:active{opacity:0.6}
+.nav-title{font-size:13px;font-weight:600;color:var(--text)}
+.nav-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-top:1px}
+
+/* OVERVIEW SCREEN */
+.ov-header{padding:56px 14px 16px}
+.ov-logo{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px}
+.ov-title{font-size:28px;font-weight:600;line-height:1.1}
+.ov-title span{color:var(--accent)}
+.ov-meta{font-size:12px;color:var(--text2);margin-top:6px}
+.phase-cards{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+.phase-card{border-radius:12px;border:1px solid var(--border2);background:var(--bg3);padding:14px;cursor:pointer;position:relative;overflow:hidden}
+.phase-card:active{opacity:0.75}
+.phase-card-accent{position:absolute;left:0;top:0;bottom:0;width:4px}
+.ph1-accent{background:linear-gradient(180deg,#4daa7e,#5a9fd4)}
+.ph2-accent{background:linear-gradient(180deg,#5a9fd4,#9b6dd6)}
+.ph3-accent{background:linear-gradient(180deg,#9b6dd6,#e07855)}
+.ph4-accent{background:linear-gradient(180deg,#e07855,#e8ff47)}
+.pc-num{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.pc-name{font-size:17px;font-weight:600;color:var(--text);margin-bottom:2px}
+.pc-dates{font-size:11px;color:var(--text2);margin-bottom:10px}
+.pc-chips{display:flex;gap:6px;flex-wrap:wrap}
+.pc-chip{font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:3px;background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
+.pc-arrow{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)}
+.pc-progress{margin-top:10px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.pc-progress-fill{height:100%;border-radius:2px;transition:width 0.3s}
+.overall-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 14px 14px}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center}
+.stat-val{font-family:'DM Mono',monospace;font-size:16px;color:var(--accent)}
+.stat-label{font-size:9px;color:var(--text3);margin-top:2px}
+
+/* PHASE HOME SCREEN */
+.ph-header{padding:52px 14px 12px}
+.ph-back-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.ph-back-btn{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:5px 10px;cursor:pointer}
+.ph-title{font-size:24px;font-weight:600;color:var(--text);line-height:1.1;margin-bottom:3px}
+.ph-title span{color:var(--accent)}
+.ph-meta{font-size:12px;color:var(--text2)}
+.ph-desc{font-size:12px;color:var(--text3);line-height:1.6;margin-top:8px;padding:10px 12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
+
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 14px}
+.week-nav-btn{font-family:'DM Mono',monospace;font-size:10px;padding:6px 14px;border-radius:4px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer}
+.week-nav-btn:active{opacity:0.6}
+.week-nav-label{font-size:13px;font-weight:500;color:var(--text)}
+
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 14px 14px}
+
+/* CALENDAR */
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);padding:0 14px;margin-bottom:4px}
+.cal-day-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);text-align:center;padding:4px 0;letter-spacing:0.04em;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 14px 14px}
+.cal-cell{border-radius:8px;border:1px solid var(--border);background:var(--bg3);padding:6px 4px;min-height:72px;cursor:pointer;position:relative}
+.cal-cell:active{opacity:0.7}
+.cal-cell.today{border-color:var(--accent)}
+.cal-cell.today::after{content:'';position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.cal-cell.rest-day{opacity:0.3;cursor:default}
+.cal-cell.done-cell{opacity:0.45}
+.cal-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:4px}
+.cal-cell.today .cal-date{color:var(--accent)}
+.cal-pip{height:3px;border-radius:2px;margin-bottom:3px}
+.cal-pip.run{background:var(--run)}
+.cal-pip.bike{background:var(--bike)}
+.cal-pip.paddle{background:var(--paddle)}
+.cal-pip.gym{background:var(--gym)}
+.cal-pip.brick{background:var(--brick)}
+.cal-label{font-size:9px;color:var(--text2);line-height:1.3}
+.cal-tick{font-size:9px;color:var(--accent);margin-top:2px;font-family:'DM Mono',monospace}
+
+/* SESSION LIST */
+.section-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;padding:0 14px 8px}
+.sesh-row{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+.sesh-row:active{background:var(--bg3)}
+.sesh-row.done-row{opacity:0.45}
+.sesh-bar{width:4px;height:38px;border-radius:2px;flex-shrink:0;margin-right:12px}
+.sesh-info{flex:1}
+.sesh-day{font-size:13px;font-weight:500;color:var(--text)}
+.sesh-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.sesh-arrow{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3)}
+.sesh-arrow.done{color:var(--accent)}
+
+/* DETAIL */
+.detail-hero{padding:14px;margin:14px;border-radius:12px}
+.detail-hero.run{background:var(--run-bg);border:1px solid var(--run-border)}
+.detail-hero.bike{background:var(--bike-bg);border:1px solid var(--bike-border)}
+.detail-hero.paddle{background:var(--paddle-bg);border:1px solid var(--paddle-border)}
+.detail-hero.gym{background:var(--gym-bg);border:1px solid var(--gym-border)}
+.detail-hero.brick{background:var(--brick-bg);border:1px solid var(--brick-border)}
+.detail-hero.double{background:linear-gradient(135deg,var(--bike-bg),var(--gym-bg));border:1px solid var(--border2)}
+.hero-type{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.hero-type.run{color:var(--run)}
+.hero-type.bike{color:var(--bike)}
+.hero-type.paddle{color:var(--paddle)}
+.hero-type.gym{color:var(--gym)}
+.hero-type.brick{color:var(--brick)}
+.hero-type.double{color:var(--text2)}
+.hero-name{font-size:20px;font-weight:600;color:var(--text);margin-bottom:4px}
+.hero-meta{font-size:12px;color:var(--text2)}
+.hero-chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.hero-chip{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:3px}
+.hero-chip.run{background:rgba(77,170,126,0.15);color:var(--run)}
+.hero-chip.bike{background:rgba(90,159,212,0.15);color:var(--bike)}
+.hero-chip.paddle{background:rgba(196,154,60,0.15);color:var(--paddle)}
+.hero-chip.gym{background:rgba(155,109,214,0.15);color:var(--gym)}
+.hero-chip.brick{background:rgba(224,120,85,0.15);color:var(--brick)}
+
+/* CARDS */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:0 14px 10px}
+.card-header{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.card-badge{font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);padding:2px 7px;border-radius:10px}
+.acl-card{background:var(--acl-bg);border:1px solid var(--acl-border);border-radius:12px;overflow:hidden;margin:0 14px 10px}
+.acl-header{padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--acl-border)}
+.acl-dot{width:7px;height:7px;border-radius:50%;background:var(--acl);flex-shrink:0}
+.acl-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--acl);letter-spacing:0.08em;text-transform:uppercase}
+
+/* EX ROW */
+.ex-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);gap:10px}
+.acl-card .ex-row{border-bottom-color:var(--acl-border)}
+.ex-row:last-child{border-bottom:none}
+.ex-left{flex:1;min-width:0}
+.tag-pill{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;padding:1px 6px;border-radius:3px;margin-right:4px;letter-spacing:0.04em;vertical-align:middle;margin-bottom:2px}
+.t-squat{background:#0d1f2d;color:#5a9fd4}
+.t-hinge{background:#0d1f18;color:#4daa7e}
+.t-push{background:#1f1a0d;color:#c49a3c}
+.t-pull{background:#180d1f;color:#9b6dd6}
+.t-carry{background:#1a1a1a;color:#888}
+.t-core{background:#1f0d14;color:#c46d8a}
+.t-knee{background:#200d0d;color:#e05555}
+.t-power{background:#1f150d;color:#e07855}
+.ex-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
+.ex-note{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.4}
+.ex-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.ex-sets{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);white-space:nowrap}
+.acl-card .ex-sets{color:var(--acl)}
+
+/* WEIGHT */
+.weight-btn{font-family:'DM Mono',monospace;font-size:9px;padding:4px 9px;border-radius:3px;border:1px solid var(--border2);background:var(--bg4);color:var(--text3);cursor:pointer;white-space:nowrap}
+.weight-btn.has-data{border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim)}
+.weight-btn:active{opacity:0.6}
+.weight-panel{display:none;background:var(--bg2);border-top:1px solid var(--border);padding:12px 14px}
+.weight-panel.open{display:block}
+.wp-title{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px}
+.set-rows{display:flex;flex-direction:column;gap:8px}
+.set-row{display:flex;align-items:center;gap:8px}
+.set-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);width:26px;flex-shrink:0}
+.set-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:8px 6px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none}
+.set-input:focus{border-color:var(--accent-border)}
+.set-input::placeholder{color:var(--text3);font-size:11px}
+.set-unit{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);width:28px;flex-shrink:0}
+.save-btn{margin-top:10px;width:100%;font-family:'DM Mono',monospace;font-size:10px;padding:9px;border-radius:5px;border:1px solid var(--accent-border);background:var(--accent-dim);color:var(--accent);cursor:pointer;letter-spacing:0.06em}
+.save-btn:active{background:rgba(232,255,71,0.18)}
+
+/* INFO */
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border)}
+.info-row:last-child{border-bottom:none}
+.info-label{font-size:12px;color:var(--text2)}
+.info-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--text)}
+
+/* ZONE BAR */
+.zone-bar{margin:0 14px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.zone-title{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px}
+.zone-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.zone-row:last-child{margin-bottom:0}
+.zone-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);width:20px}
+.zone-track{height:5px;border-radius:3px}
+.z1{background:#2a6e50;width:35%}
+.z2{background:#4daa7e;width:60%}
+.z3{background:#c49a3c;width:78%}
+.z4{background:#d4603c;width:95%}
+.zone-tag{font-family:'DM Mono',monospace;font-size:9px;margin-left:auto}
+.zone-tag.target{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);padding:1px 6px;border-radius:3px}
+.zone-tag.avoid{color:var(--text3)}
+
+/* VAR */
+.var-row{display:flex;gap:6px;padding:0 14px 14px;align-items:center}
+.var-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:0.04em;margin-right:2px}
+.var-btn{font-family:'DM Mono',monospace;font-size:10px;padding:5px 14px;border-radius:4px;border:1px solid var(--border2);background:var(--bg3);color:var(--text3);cursor:pointer}
+.var-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.var-btn:active{opacity:0.6}
+
+/* TIP */
+.tip-box{margin:0 14px 10px;background:#0f1a00;border:1px solid #2a3a00;border-radius:8px;padding:10px 14px;font-size:12px;color:#8aaa30;line-height:1.5}
+
+/* DONE BTN */
+.done-btn{display:block;margin:4px 14px 10px;width:calc(100% - 28px);padding:13px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.04em;text-align:center;transition:all 0.2s}
+.done-btn.completed{background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent)}
+.done-btn:active{opacity:0.7}
+
+.pb{height:60px}
+</style>
+</head>
+<body>
+
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <div class="ib-text"><strong>Install C2C Training</strong><br>Works offline — tap to add to home screen</div>
+  <button class="ib-btn" id="ib-install">Install</button>
+  <button class="ib-x" onclick="dismissInstall()">✕</button>
+</div>
+
+<!-- SCREEN: OVERVIEW -->
+<div class="screen" id="screen-overview">
+  <div class="ov-header">
+    <div class="ov-logo">Coast to Coast · 2027</div>
+    <div class="ov-title">Training<br><span>Plan</span></div>
+    <div class="ov-meta">47 weeks · 4 phases · race day 13 Feb 2027</div>
+  </div>
+  <div class="overall-stats" id="ov-stats"></div>
+  <div class="section-label">Phases</div>
+  <div class="phase-cards" id="phase-cards"></div>
+  <div class="pb"></div>
+</div>
+
+<!-- SCREEN: PHASE HOME -->
+<div class="screen hidden" id="screen-phase">
+  <div class="ph-header">
+    <div class="ph-back-row">
+      <button class="ph-back-btn" onclick="goOverview()">← all phases</button>
+    </div>
+    <div class="ph-title" id="ph-title">Phase</div>
+    <div class="ph-meta" id="ph-meta"></div>
+    <div class="ph-desc" id="ph-desc"></div>
+  </div>
+  <div class="week-nav">
+    <button class="week-nav-btn" onclick="prevWeek()">← prev</button>
+    <div class="week-nav-label" id="week-nav-label">Week 1</div>
+    <button class="week-nav-btn" onclick="nextWeek()">next →</button>
+  </div>
+  <div class="stats-bar" id="stats-bar"></div>
+  <div class="cal-header">
+    <div class="cal-day-label">M</div><div class="cal-day-label">T</div>
+    <div class="cal-day-label">W</div><div class="cal-day-label">T</div>
+    <div class="cal-day-label">F</div><div class="cal-day-label">S</div>
+    <div class="cal-day-label">S</div>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="section-label">This week</div>
+  <div id="session-list"></div>
+  <div class="pb"></div>
+</div>
+
+<!-- SCREEN: SESSION DETAIL -->
+<div class="screen hidden" id="screen-detail">
+  <div class="nav">
+    <button class="nav-back" onclick="goPhase()">← back</button>
+    <div>
+      <div class="nav-title" id="d-title">Session</div>
+      <div class="nav-sub" id="d-sub"></div>
+    </div>
+  </div>
+  <div id="detail-content"></div>
+  <div class="pb"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// PWA
+// ═══════════════════════════════════════════════════════════════
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  if(!localStorage.getItem('ibDismissed')) document.getElementById('install-banner').classList.add('show');
+});
+document.getElementById('ib-install').addEventListener('click',()=>{
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-banner').classList.remove('show');})}
+});
+function dismissInstall(){document.getElementById('install-banner').classList.remove('show');localStorage.setItem('ibDismissed','1')}
+
+// ═══════════════════════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════════════════════
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function load(k,d){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d}catch(e){return d}}
+function isDone(k){return load('done_'+k,false)}
+function toggleDone(k){store('done_'+k,!isDone(k))}
+function getWts(id,ph,wk){return load('wt_'+id+'_p'+ph+'_w'+wk,{})}
+function setWts(id,ph,wk,data){store('wt_'+id+'_p'+ph+'_w'+wk,data)}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE DEFINITIONS
+// ═══════════════════════════════════════════════════════════════
+const TODAY = new Date(2026,4,7);
+
+// PHASES is built lazily after all builder functions are defined
+let PHASES = null;
+function getPhases() {
+  if (PHASES) return PHASES;
+  PHASES = [
+    {
+      id:0, name:'Foundation', sub:'Phase 1',
+      dates:'Mar – Jun 2026', weeks:12,
+      start: new Date(2026,2,16),
+      desc:'Build the aerobic engine. All effort conversational — zone 2 only. Gym focuses on movement quality and posterior chain strength.',
+      hours:'6–8', focus:'Zone 2',
+      accentGrad:'linear-gradient(180deg,#4daa7e,#5a9fd4)',
+      schedule: p1Schedule(),
+      gymData: { mon: buildP1GymMon(), thu: buildP1GymThu() },
+      deloadWeeks:[3,7,11],
+      cardioData: p1Cardio(),
+    },
+    {
+      id:1, name:'Aerobic Build', sub:'Phase 2',
+      dates:'Jun – Aug 2026', weeks:12,
+      start: new Date(2026,5,8),
+      desc:'Volume and intensity increase. One threshold session per week per discipline. Gym shifts toward power. Paddle moves to moving water.',
+      hours:'8–11', focus:'Threshold',
+      accentGrad:'linear-gradient(180deg,#5a9fd4,#9b6dd6)',
+      schedule: p2Schedule(),
+      gymData: { mon: buildP2GymMon(), thu: buildP2GymThu() },
+      deloadWeeks:[3,7,11],
+      cardioData: p2Cardio(),
+    },
+    {
+      id:2, name:'Specificity', sub:'Phase 3',
+      dates:'Aug – Dec 2026', weeks:16,
+      start: new Date(2026,7,31),
+      desc:'Race-specific training. Longer back-to-back sessions, brick workouts (bike→run), and river simulation paddling.',
+      hours:'11–14', focus:'Race sim',
+      accentGrad:'linear-gradient(180deg,#9b6dd6,#e07855)',
+      schedule: p3Schedule(),
+      gymData: { mon: buildP3GymMon(), thu: buildP3GymThu() },
+      deloadWeeks:[3,7,11,15],
+      cardioData: p3Cardio(),
+    },
+    {
+      id:3, name:'Pre-Race', sub:'Phase 4',
+      dates:'Dec 2026 – race day 2027', weeks:7,
+      start: new Date(2026,11,21),
+      desc:'Taper and sharpen. Volume drops 35% but intensity stays. Final 2 weeks: easy movement, sleep, and logistics prep.',
+      hours:'4–9', focus:'Sharpen',
+      accentGrad:'linear-gradient(180deg,#e07855,#e8ff47)',
+      schedule: p4Schedule(),
+      gymData: { mon: buildP4GymMon(), thu: buildP4GymThu() },
+      deloadWeeks:[5,6],
+      cardioData: p4Cardio(),
+    },
+  ];
+  return PHASES;
+}
+
+// ─── SCHEDULES (what runs each day of the week for each phase) ───
+function p1Schedule(){return[
+  {type:'gym',   label:'Gym',       sub:'Strength · ~60 min',   color:'gym',    sk:'gym-mon'},
+  {type:'run',   label:'Easy Run',  sub:'40 min · zone 2',      color:'run',    sk:'run-easy'},
+  {type:'paddle',label:'Paddle',    sub:'45 min · flat water',   color:'paddle', sk:'paddle'},
+  {type:'double',label:'Ride + Gym',sub:'AM ride · PM gym',      color:'bike',   sk:'double'},
+  {type:'rest',  label:'Rest',      sub:'Recovery',              color:'rest',   sk:'rest'},
+  {type:'run',   label:'Long Run',  sub:'60–75 min · easy',      color:'run',    sk:'run-long'},
+  {type:'bike',  label:'Long Ride', sub:'90 min · zone 2',       color:'bike',   sk:'bike-long'},
+]}
+function p2Schedule(){return[
+  {type:'double2',label:'Gym + Run',  sub:'Strength + threshold PM',color:'gym',  sk:'double2'},
+  {type:'bike',   label:'Easy Ride',  sub:'60 min · zone 2',         color:'bike', sk:'bike-easy'},
+  {type:'paddle', label:'Paddle',     sub:'60 min · moving water',   color:'paddle',sk:'paddle'},
+  {type:'run',    label:'Easy Run',   sub:'50 min · zone 2',         color:'run',  sk:'run-easy'},
+  {type:'rest',   label:'Rest',       sub:'Recovery',                color:'rest', sk:'rest'},
+  {type:'bike',   label:'Tempo Ride', sub:'2 hrs · threshold sets',  color:'bike', sk:'bike-tempo'},
+  {type:'run',    label:'Long Run',   sub:'90 min · easy trails',    color:'run',  sk:'run-long'},
+]}
+function p3Schedule(){return[
+  {type:'double3',label:'Gym + Hills', sub:'Strength + hill reps PM',color:'gym',  sk:'double3'},
+  {type:'brick',  label:'Brick',       sub:'Ride → run',              color:'brick',sk:'brick'},
+  {type:'paddle', label:'Paddle',      sub:'90 min · river sim',      color:'paddle',sk:'paddle'},
+  {type:'run',    label:'Easy Run',    sub:'60 min · recovery',       color:'run',  sk:'run-easy'},
+  {type:'rest',   label:'Rest',        sub:'Recovery',                color:'rest', sk:'rest'},
+  {type:'bike',   label:'Long Ride',   sub:'3.5–4 hrs · hills',       color:'bike', sk:'bike-long'},
+  {type:'run',    label:'Long Run',    sub:'2–2.5 hrs · goat sim',    color:'run',  sk:'run-long'},
+]}
+function p4Schedule(){return[
+  {type:'double4',label:'Gym + Strides',sub:'Activation + strides PM',color:'gym', sk:'double4'},
+  {type:'bike',   label:'Sharp Ride',   sub:'75 min · race pace sets', color:'bike',sk:'bike-sharp'},
+  {type:'paddle', label:'Paddle',       sub:'60 min · confidence',     color:'paddle',sk:'paddle'},
+  {type:'run',    label:'Easy Run',     sub:'40 min · zone 1–2',       color:'run', sk:'run-easy'},
+  {type:'rest',   label:'Rest',         sub:'Recovery',                color:'rest',sk:'rest'},
+  {type:'bike',   label:'Easy Ride',    sub:'2 hrs · enjoy it',        color:'bike',sk:'bike-easy'},
+  {type:'run',    label:'Short Run',    sub:'50 min · easy trails',    color:'run', sk:'run-short'},
+]}
+
+// ─── CARDIO DATA ───
+function p1Cardio(){return{
+  'run-easy':{title:'Easy Run',type:'run',fields:[{l:'Duration',v:'40 min'},{l:'Zone',v:'Zone 2'},{l:'Effort',v:'Conversational'},{l:'Terrain',v:'Road or trail'}],tip:"If you can't hold a full sentence, slow down. Zone 2 feels almost embarrassingly easy — that's correct."},
+  'run-long':{title:'Long Run',type:'run',fields:[{l:'Duration',v:'60–75 min'},{l:'Zone',v:'Zone 1–2'},{l:'Effort',v:'Easy — never pushing'},{l:'Terrain',v:'Trail preferred'},{l:'Nutrition',v:'Water only ≤75 min'}],tip:'Get off road when you can. Technical terrain builds ankle strength for Goat Pass.'},
+  'bike-long':{title:'Long Ride',type:'bike',fields:[{l:'Duration',v:'90 min'},{l:'Zone',v:'Zone 1–2'},{l:'Cadence',v:'80–90 rpm'},{l:'Terrain',v:'Rolling hills'},{l:'Nutrition',v:'Eat after 60 min'}],tip:'Wanaka–Albert Town loop is close to 90 min at easy pace.'},
+  'paddle':{title:'Paddle',type:'paddle',fields:[{l:'Duration',v:'45 min'},{l:'Water',v:'Flat — Lake Wanaka/Hawea'},{l:'Focus',v:'Technique, not fitness'},{l:'Drills',v:'Forward stroke, high brace'},{l:'Effort',v:'Light'}],tip:'Video your stroke if you can. Bad habits are easier to fix now than on the Waimakariri.'},
+}}
+function p2Cardio(){return{
+  'bike-easy':{title:'Easy Ride',type:'bike',fields:[{l:'Duration',v:'60 min'},{l:'Zone',v:'Zone 2'},{l:'Cadence',v:'80–90 rpm'},{l:'Effort',v:'Conversational'}],tip:'Recovery ride — spin easy. Do not let this become a threshold session.'},
+  'bike-tempo':{title:'Tempo Ride',type:'bike',fields:[{l:'Duration',v:'2 hrs'},{l:'Structure',v:'20 min warm-up, 2×20 min threshold, 20 min cool-down'},{l:'Threshold feel',v:'Hard but sustainable 20 min'},{l:'Zone',v:'Zone 3–4 for efforts'}],tip:'The 20 min threshold blocks should feel like a hard effort you could just barely sustain. Reduce to 2×15 min if needed.'},
+  'run-easy':{title:'Easy Run',type:'run',fields:[{l:'Duration',v:'50 min'},{l:'Zone',v:'Zone 2'},{l:'Effort',v:'Conversational'},{l:'Terrain',v:'Flat to rolling'}],tip:'Still zone 2. The extra 10 min over Phase 1 builds base volume.'},
+  'run-long':{title:'Long Run',type:'run',fields:[{l:'Duration',v:'90 min'},{l:'Zone',v:'Zone 1–2'},{l:'Terrain',v:'Trails preferred'},{l:'Nutrition',v:'Gel or food at 60 min'}],tip:'First time you will need trail shoes and nutrition on a run this long.'},
+  'paddle':{title:'Paddle',type:'paddle',fields:[{l:'Duration',v:'60 min'},{l:'Water',v:'Moving water — rivers'},{l:'Focus',v:'River reading + ferry angles'},{l:'Drills',v:'Eddy turns, peel outs'}],tip:'Moving to rivers now. Grade 1–2 is ideal. Clutha tributaries work well from Wanaka.'},
+}}
+function p3Cardio(){return{
+  'brick':{title:'Brick Session',type:'brick',fields:[{l:'Ride',v:'90 min zone 2–3'},{l:'Transition',v:'≤5 min — move fast'},{l:'Run',v:'20 min off the bike'},{l:'Run pace',v:'Easy — legs will feel dead'},{l:'Purpose',v:'Training the bike→run transition'}],tip:'The first 5–10 min of the run will feel awful — that is normal and exactly what you are training. Embrace it.'},
+  'run-easy':{title:'Recovery Run',type:'run',fields:[{l:'Duration',v:'60 min'},{l:'Zone',v:'Zone 1–2 only'},{l:'Purpose',v:'Active recovery after long weekend'},{l:'Terrain',v:'Flat preferred'}],tip:'This should feel easy. If your legs are still heavy from Saturday/Sunday, shorten to 40 min.'},
+  'run-long':{title:'Long Run — Goat Sim',type:'run',fields:[{l:'Duration',v:'2–2.5 hrs'},{l:'Zone',v:'Zone 1–2'},{l:'Terrain',v:'Technical — off-road essential'},{l:'Nutrition',v:'Gels every 45 min + real food at 90 min'},{l:'Elevation',v:'Aim for 600–1000 m gain'}],tip:'This is your Goat Pass simulation. Get to Roys Peak, Breast Hill, or similar. Get comfortable being uncomfortable on your feet for 2+ hrs.'},
+  'bike-long':{title:'Long Ride',type:'bike',fields:[{l:'Duration',v:'3.5–4 hrs'},{l:'Zone',v:'Zone 2 with threshold surges'},{l:'Terrain',v:'Hilly — Crown Range ideal'},{l:'Nutrition',v:'80–100 g carbs/hr from 60 min'}],tip:'Crown Range and back from Wanaka is close to 4 hrs at training pace. Learn to eat on the bike now.'},
+  'paddle':{title:'River Paddle — Race Sim',type:'paddle',fields:[{l:'Duration',v:'90 min'},{l:'Water',v:'Grade 2 minimum'},{l:'Focus',v:'Reading water, rapid lines'},{l:'Drills',v:'High brace, draw stroke, roll practice'}],tip:'Rangitata or Waiau for race simulation. You want to be reading grade 2+ confidently before race day.'},
+}}
+function p4Cardio(){return{
+  'bike-sharp':{title:'Sharp Ride',type:'bike',fields:[{l:'Duration',v:'75 min'},{l:'Structure',v:'15 min warm-up, 3×5 min race pace, cool-down'},{l:'Race pace feel',v:'Hard but not maximal'},{l:'Purpose',v:'Maintain sharpness, reduce volume'}],tip:'Short, sharp, done. Do not add extra volume this week. Trust the taper.'},
+  'bike-easy':{title:'Easy Ride',type:'bike',fields:[{l:'Duration',v:'2 hrs'},{l:'Zone',v:'Zone 1–2'},{l:'Purpose',v:'Keep the legs moving, enjoy it'},{l:'Effort',v:'Conversational — this is not training'}],tip:'This is a maintenance ride, not fitness work. Enjoy Wanaka. Your fitness is already built.'},
+  'run-easy':{title:'Easy Run',type:'run',fields:[{l:'Duration',v:'40 min'},{l:'Zone',v:'Zone 1–2'},{l:'Purpose',v:'Keep the engine ticking over'},{l:'Effort',v:'Should feel effortless'}],tip:'You cannot gain fitness in the final 2 weeks. You can only maintain or lose it. Keep it easy.'},
+  'run-short':{title:'Short Trail Run',type:'run',fields:[{l:'Duration',v:'50 min'},{l:'Zone',v:'Zone 1–2'},{l:'Terrain',v:'Easy trails'},{l:'Purpose',v:'Leg feel + enjoyment'}],tip:'Last long-ish run before race week. Do a route you love. No heroics.'},
+  'paddle':{title:'Confidence Paddle',type:'paddle',fields:[{l:'Duration',v:'60 min'},{l:'Water',v:'Grade 1–2'},{l:'Focus',v:'Feeling good, feeling fast'},{l:'Mindset',v:'Confidence, not training'}],tip:'Paddle something familiar that makes you feel capable. This is not the time for new rivers.'},
+}}
+
+// ═══════════════════════════════════════════════════════════════
+// GYM DATA — ALL 4 PHASES
+// ═══════════════════════════════════════════════════════════════
+
+// PHASE 1 GYM MON
+function buildP1GymMon(){return{vars:[
+  {label:'Variation A — squat & hinge',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p1ma-wgs',name:"World's greatest stretch",note:'Hip flexor + thoracic rotation',sets:'3/side',n:0},
+      {id:'p1ma-gb',name:'Glute bridge',note:'2 sec pause at top',sets:'2×12',n:2},
+      {id:'p1ma-bpa',name:'Band pull-apart',note:'Shoulders packed',sets:'2×15',n:2},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p1ma-gs',tag:'squat',name:'Goblet squat',note:'Chest tall, knees tracking toes',sets:'3–4×8',n:4,w:true},
+      {id:'p1ma-rdl',tag:'hinge',name:'Romanian deadlift',note:'Hinge at hips, feel hamstring tension',sets:'3×10',n:3,w:true},
+      {id:'p1ma-row',tag:'pull',name:'Seated cable row',note:'Elbows tight, pause at chest',sets:'3×12',n:3,w:true},
+      {id:'p1ma-press',tag:'push',name:'Flat DB press',note:'2 sec descent, shoulders back',sets:'3×10',n:3,w:true},
+      {id:'p1ma-fc',tag:'carry',name:"Farmer's carry",note:'Heavy DBs, tall posture, 40m',sets:'3×40m',n:3,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p1ma-tle',tag:'knee',name:'Terminal leg extension',note:'Last 30° only — feel VMO fire',sets:'3×15',n:3},
+      {id:'p1ma-sqs',tag:'knee',name:'Spanish squat hold',note:'Band on post, vertical shin',sets:'3×30s',n:3},
+      {id:'p1ma-db',tag:'core',name:'Dead bug',note:'Lower back flat to floor',sets:'3×8/side',n:3},
+    ]},
+  ]},
+  {label:'Variation B — trap bar & chest',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p1mb-9090',name:'Hip 90/90 + thoracic rotation',note:'2 min per side',sets:'2min/side',n:0},
+      {id:'p1mb-slgb',name:'Single-leg glute bridge',note:'Note strength diff side to side',sets:'2×10/side',n:2},
+      {id:'p1mb-fp',name:'Face pull',note:'External rotation, shoulder prep',sets:'2×15',n:2},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p1mb-trap',tag:'hinge',name:'Trap bar deadlift',note:'More upright torso than conventional',sets:'4×6',n:4,w:true},
+      {id:'p1mb-heels',tag:'squat',name:'Heel-elevated squat',note:'Plates under heels, hits quads harder',sets:'3×10',n:3,w:true},
+      {id:'p1mb-dbrow',tag:'pull',name:'Single-arm DB row',note:'Brace on bench, heavy, unilateral',sets:'3×10/side',n:3,w:true},
+      {id:'p1mb-inc',tag:'push',name:'Incline DB press',note:'30–45° incline, controlled descent',sets:'3×10',n:3,w:true},
+      {id:'p1mb-suit',tag:'carry',name:'Suitcase carry',note:'One DB — lateral core works hard',sets:'3×40m/side',n:3,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p1mb-slp',tag:'knee',name:'Single-leg press (shallow)',note:'0–60° only, one leg at a time',sets:'3×12/side',n:3,w:true},
+      {id:'p1mb-nc',tag:'knee',name:'Nordic curl',note:'4–5 sec eccentric. Catch if needed.',sets:'3×5–6',n:3},
+      {id:'p1mb-sp',tag:'core',name:'Side plank',note:'Hips up, straight line head to feet',sets:'3×25s/side',n:3},
+    ]},
+  ]},
+  {label:'Variation C — unilateral focus',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p1mc-lbw',name:'Lateral band walk',note:'Mini band above knees, stay low',sets:'2×15/side',n:2},
+      {id:'p1mc-cos',name:'Cossack squat (BW)',note:'Wide stance, shift side to side',sets:'2×8/side',n:2},
+      {id:'p1mc-bpa',name:'Band pull-apart',note:'',sets:'2×15',n:2},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p1mc-rfess',tag:'squat',name:'Rear-foot elevated split squat',note:'Heavier than Thursday — treat as a strength lift',sets:'4×8/side',n:4,w:true},
+      {id:'p1mc-slrdl',tag:'hinge',name:'Single-leg RDL (loaded)',note:'Two DBs, slow and controlled',sets:'3×10/side',n:3,w:true},
+      {id:'p1mc-hkrow',tag:'pull',name:'Half-kneeling cable row',note:'Kneeling challenges core while pulling',sets:'3×12/side',n:3,w:true},
+      {id:'p1mc-sapr',tag:'push',name:'Single-arm DB press',note:'Core resists rotation throughout',sets:'3×10/side',n:3,w:true},
+      {id:'p1mc-ohc',tag:'carry',name:'Overhead carry',note:'One DB pressed overhead, 30m/side',sets:'3×30m/side',n:3,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p1mc-tle',tag:'knee',name:'Terminal leg extension',note:'Light band at ankle, last 30° only',sets:'3×15',n:3},
+      {id:'p1mc-wsvmo',tag:'knee',name:'Wall sit + VMO squeeze',note:'Ball between knees, squeeze gently',sets:'3×45s',n:3},
+      {id:'p1mc-pp',tag:'core',name:'Pallof press',note:'Side-on to cable, press + hold 2 sec',sets:'3×10/side',n:3},
+    ]},
+  ]},
+]}}
+
+// PHASE 1 GYM THU
+function buildP1GymThu(){return{vars:[
+  {label:'Variation A — hip mobility & posterior',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p1ta-9090',name:'Hip 90/90 stretch',note:'2 min per side',sets:'2min/side',n:0},
+      {id:'p1ta-cc',name:'Cat-cow',note:'Full spinal range, slow',sets:'10 reps',n:0},
+      {id:'p1ta-tr',name:'Thoracic rotation (kneeling)',note:'Key for paddle — rotate as far as you can',sets:'8/side',n:0},
+    ]},
+    {t:'Stability & single-leg',time:'22 min',ex:[
+      {id:'p1ta-bss',tag:'squat',name:'Bulgarian split squat',note:'BW or light DBs, stability focus',sets:'3×8/side',n:3,w:true},
+      {id:'p1ta-slrdl',tag:'hinge',name:'Single-leg RDL',note:'Hip stability is the goal, not load',sets:'3×8/side',n:3,w:true},
+      {id:'p1ta-row',tag:'pull',name:'TRX row / lat pulldown',note:'Shoulders packed, no shrug at top',sets:'3×12',n:3,w:true},
+      {id:'p1ta-pu',tag:'push',name:'Push-up',note:'Body rigid as a plank. Feet elevated if easy.',sets:'3×12',n:3},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p1ta-tle',tag:'knee',name:'Terminal leg extension',note:'Band or cable, last 30°, light',sets:'3×15',n:3},
+      {id:'p1ta-nc',tag:'knee',name:'Nordic curl',note:'Most important ACL prevention exercise. Slow eccentric.',sets:'3×6',n:3},
+      {id:'p1ta-cop',tag:'core',name:'Copenhagen plank',note:'Adductor + lateral core',sets:'3×20s/side',n:3},
+      {id:'p1ta-pp',tag:'core',name:'Pallof press',note:'Anti-rotation, press + hold 2 sec',sets:'3×10/side',n:3},
+    ]},
+  ]},
+  {label:'Variation B — step patterns & rotation',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p1tb-lbw',name:'Lateral band walk',note:'Mini band above knees',sets:'2×15/side',n:2},
+      {id:'p1tb-wgs',name:"World's greatest stretch",note:'',sets:'3/side',n:0},
+      {id:'p1tb-cars',name:'Arm circles + shoulder CARs',note:'Full range shoulder prep',sets:'10/dir',n:0},
+    ]},
+    {t:'Stability & single-leg',time:'22 min',ex:[
+      {id:'p1tb-su',tag:'squat',name:'Step-up with knee drive',note:'Drive knee up at top — mimics trail running',sets:'3×10/side',n:3,w:true},
+      {id:'p1tb-slc',tag:'hinge',name:'Sliding leg curl',note:'Heels on sliders, bridge up + curl. Hamstring gold.',sets:'3×10',n:3},
+      {id:'p1tb-hkld',tag:'pull',name:'Half-kneeling lat pulldown',note:'Challenges hip flexor + core',sets:'3×12/side',n:3,w:true},
+      {id:'p1tb-lmp',tag:'push',name:'Landmine press',note:'Diagonal press = paddle mechanics',sets:'3×10/side',n:3,w:true},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p1tb-ss',tag:'knee',name:'Spanish squat hold',note:'Band on post, vertical shin throughout',sets:'3×30s',n:3},
+      {id:'p1tb-slp',tag:'knee',name:'Single-leg press (shallow)',note:'0–60° range, check symmetry',sets:'3×12/side',n:3,w:true},
+      {id:'p1tb-chop',tag:'core',name:'Rotational cable chop',note:'High-to-low and low-to-high',sets:'3×10/side',n:3,w:true},
+      {id:'p1tb-db',tag:'core',name:'Dead bug',note:'Lower back flat to floor throughout',sets:'3×8/side',n:3},
+    ]},
+  ]},
+  {label:'Variation C — isometric & tendon',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p1tc-hfs',name:'Hip flexor stretch (kneeling)',note:'2 min per side',sets:'2min/side',n:0},
+      {id:'p1tc-gbband',name:'Glute bridge with band',note:'Band above knees, push knees out',sets:'2×15',n:2},
+      {id:'p1tc-fr',name:'Thoracic opener (foam roller)',note:'T-spine extension',sets:'2 min',n:0},
+    ]},
+    {t:'Stability & single-leg',time:'22 min',ex:[
+      {id:'p1tc-ws',tag:'squat',name:'Wall sit (single-leg progression)',note:'Start both legs → shift weight to one side',sets:'3×45s',n:3},
+      {id:'p1tc-be',tag:'hinge',name:'45° back extension',note:'GHD or back extension machine',sets:'3×15',n:3,w:true},
+      {id:'p1tc-papf',tag:'pull',name:'Pull-apart + face pull superset',note:'15 pull-aparts then 12 face pulls',sets:'3 rounds',n:3},
+      {id:'p1tc-pudd',tag:'push',name:'Push-up to downward dog',note:'Push-up then press back to down dog',sets:'3×10',n:3},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p1tc-iso',tag:'knee',name:'Isometric leg ext hold',note:'Last 30° of extension, hold 30 sec',sets:'3×30s/side',n:3},
+      {id:'p1tc-nc',tag:'knee',name:'Nordic curl',note:'Never rush this. Slow eccentric always.',sets:'3×6',n:3},
+      {id:'p1tc-cr',tag:'knee',name:'Calf raise + eccentric lower',note:'Raise 2 legs, lower 1 over 3 sec',sets:'3×12',n:3},
+      {id:'p1tc-cop',tag:'core',name:'Copenhagen plank',note:'',sets:'3×25s/side',n:3},
+    ]},
+  ]},
+]}}
+
+// PHASE 2 GYM MON — power focus
+function buildP2GymMon(){return{vars:[
+  {label:'Variation A — barbell power',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p2ma-wgs',name:"World's greatest stretch",note:'Hip flexor + thoracic rotation',sets:'3/side',n:0},
+      {id:'p2ma-slgb',name:'Single-leg glute bridge',note:'Note any asymmetry between sides',sets:'2×10/side',n:2},
+      {id:'p2ma-fp',name:'Face pull',note:'External rotation prep',sets:'2×15',n:2},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p2ma-sq',tag:'squat',name:'Barbell back squat',note:'Build from Phase 1 goblet loads',sets:'4×6',n:4,w:true},
+      {id:'p2ma-rdl',tag:'hinge',name:'Romanian deadlift',note:'Heavier than Phase 1',sets:'4×8',n:4,w:true},
+      {id:'p2ma-pu',tag:'pull',name:'Pull-up / lat pulldown',note:'Full dead hang to chin over bar',sets:'4×6–8',n:4,w:true},
+      {id:'p2ma-bp',tag:'push',name:'Barbell bench press',note:'Controlled descent, leg drive',sets:'4×8',n:4,w:true},
+      {id:'p2ma-fc',tag:'carry',name:'Heavy farmer carry',note:'Heavier than Phase 1, 50m',sets:'4×50m',n:4,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p2ma-tle',tag:'knee',name:'Terminal leg extension',note:'Last 30° only. Slightly heavier than Phase 1.',sets:'3×15',n:3},
+      {id:'p2ma-nc',tag:'knee',name:'Nordic curl',note:'4–5 sec eccentric — never rush this',sets:'3×6–8',n:3},
+      {id:'p2ma-cop',tag:'core',name:'Copenhagen plank',note:'Longer holds — 30 sec per side',sets:'3×30s/side',n:3},
+    ]},
+  ]},
+  {label:'Variation B — trap bar & unilateral',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p2mb-9090',name:'Hip 90/90 + thoracic rotation',note:'2 min per side',sets:'2min/side',n:0},
+      {id:'p2mb-lbw',name:'Lateral band walk',note:'Mini band above knees',sets:'2×15/side',n:2},
+      {id:'p2mb-cars',name:'Shoulder CARs',note:'Full range articular rotation',sets:'10/side',n:0},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p2mb-trap',tag:'hinge',name:'Trap bar deadlift',note:'Heavier than Phase 1',sets:'4×5',n:4,w:true},
+      {id:'p2mb-rfess',tag:'squat',name:'Rear-foot elevated split squat',note:'Heavy — strength not stability',sets:'4×8/side',n:4,w:true},
+      {id:'p2mb-sarow',tag:'pull',name:'Single-arm DB row',note:'Heavy. Brace hard.',sets:'4×10/side',n:4,w:true},
+      {id:'p2mb-dip',tag:'push',name:'Dip / tricep dip',note:'Bodyweight or weighted. Chest forward.',sets:'3×10',n:3,w:true},
+      {id:'p2mb-suit',tag:'carry',name:'Suitcase carry',note:'Heaviest yet, 50m per side',sets:'4×50m/side',n:4,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p2mb-slp',tag:'knee',name:'Single-leg press (shallow)',note:'0–60° — heavier than Phase 1',sets:'3×12/side',n:3,w:true},
+      {id:'p2mb-ss',tag:'knee',name:'Spanish squat hold',note:'Add a band above knees for extra load',sets:'3×40s',n:3},
+      {id:'p2mb-pp',tag:'core',name:'Pallof press',note:'Heavier band or cable — hold 2 sec',sets:'3×12/side',n:3},
+    ]},
+  ]},
+  {label:'Variation C — Olympic & plyometric',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p2mc-skip',name:'Skipping / jump rope',note:'2 min easy',sets:'2 min',n:0},
+      {id:'p2mc-cos',name:'Cossack squat',note:'Bodyweight, controlled',sets:'2×8/side',n:2},
+      {id:'p2mc-bpa',name:'Band pull-apart',note:'',sets:'2×20',n:2},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p2mc-dbsq',tag:'squat',name:'DB squat jump',note:'Light DBs, explosive from the bottom',sets:'4×8',n:4,w:true},
+      {id:'p2mc-pcu',tag:'hinge',name:'Power clean (or DB hang clean)',note:'Hip drive. Speed, not weight.',sets:'4×5',n:4,w:true},
+      {id:'p2mc-kbrow',tag:'pull',name:'Kettlebell row',note:'Explosive pull, controlled descent',sets:'3×10/side',n:3,w:true},
+      {id:'p2mc-plyo',tag:'push',name:'Plyo push-up',note:'Explosive, land soft — power development',sets:'3×8',n:3},
+      {id:'p2mc-ohc',tag:'carry',name:'Overhead carry',note:'One arm pressed overhead, 35m per side',sets:'3×35m/side',n:3,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p2mc-tle',tag:'knee',name:'Terminal leg extension',note:'Last 30° only. VMO activation.',sets:'3×15',n:3},
+      {id:'p2mc-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric. Non-negotiable.',sets:'3×8',n:3},
+      {id:'p2mc-lj',tag:'knee',name:'Single-leg landing drill',note:'Drop from box, land and hold 2 sec. Control the knee.',sets:'3×8/side',n:3},
+    ]},
+  ]},
+]}}
+
+// PHASE 2 GYM THU
+function buildP2GymThu(){return{vars:[
+  {label:'Variation A — heavy single-leg',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p2ta-9090',name:'Hip 90/90 stretch',note:'2 min per side',sets:'2min/side',n:0},
+      {id:'p2ta-cc',name:'Cat-cow + thoracic rotation',note:'Full range',sets:'10+8/side',n:0},
+      {id:'p2ta-slgb',name:'Single-leg glute bridge',note:'Note side-to-side difference',sets:'2×12/side',n:2},
+    ]},
+    {t:'Stability & strength',time:'22 min',ex:[
+      {id:'p2ta-bss',tag:'squat',name:'Bulgarian split squat',note:'Heavy — this is a strength lift now',sets:'4×8/side',n:4,w:true},
+      {id:'p2ta-slrdl',tag:'hinge',name:'Single-leg RDL',note:'Add load from Phase 1',sets:'4×8/side',n:4,w:true},
+      {id:'p2ta-ld',tag:'pull',name:'Lat pulldown',note:'Heavy, full ROM',sets:'4×10',n:4,w:true},
+      {id:'p2ta-pu',tag:'push',name:'Decline push-up',note:'Feet elevated — targets upper chest + shoulders',sets:'3×12',n:3},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p2ta-tle',tag:'knee',name:'Terminal leg extension',note:'Heavier band or cable',sets:'3×15',n:3},
+      {id:'p2ta-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric. Add reps from Phase 1.',sets:'3×8',n:3},
+      {id:'p2ta-cop',tag:'core',name:'Copenhagen plank',note:'35 sec per side',sets:'3×35s/side',n:3},
+      {id:'p2ta-pp',tag:'core',name:'Pallof press',note:'Heavier, longer hold',sets:'3×12/side',n:3},
+    ]},
+  ]},
+  {label:'Variation B — step & rotate',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p2tb-lbw',name:'Lateral band walk',note:'Mini band above knees',sets:'2×15/side',n:2},
+      {id:'p2tb-wgs',name:"World's greatest stretch",note:'',sets:'3/side',n:0},
+      {id:'p2tb-cars',name:'Shoulder CARs',note:'Full range — paddle prep',sets:'10/side',n:0},
+    ]},
+    {t:'Stability & strength',time:'22 min',ex:[
+      {id:'p2tb-su',tag:'squat',name:'Weighted step-up with drive',note:'DBs in hands, drive knee hard at top',sets:'4×10/side',n:4,w:true},
+      {id:'p2tb-slc',tag:'hinge',name:'Sliding leg curl',note:'Slower eccentric than Phase 1',sets:'3×12',n:3},
+      {id:'p2tb-hkld',tag:'pull',name:'Half-kneeling cable pull-down',note:'Challenges core + hip flexor',sets:'4×12/side',n:4,w:true},
+      {id:'p2tb-lmp',tag:'push',name:'Landmine press',note:'Heavier than Phase 1',sets:'3×10/side',n:3,w:true},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p2tb-ss',tag:'knee',name:'Spanish squat hold',note:'Add band above knees for VMO',sets:'3×40s',n:3},
+      {id:'p2tb-slp',tag:'knee',name:'Single-leg press (shallow)',note:'Heavier — symmetry check every session',sets:'3×12/side',n:3,w:true},
+      {id:'p2tb-chop',tag:'core',name:'Rotational cable chop',note:'Heavier — full hip rotation',sets:'3×12/side',n:3,w:true},
+      {id:'p2tb-db',tag:'core',name:'Dead bug',note:'Add weight — hold DB overhead',sets:'3×10/side',n:3},
+    ]},
+  ]},
+  {label:'Variation C — endurance sets',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p2tc-hfs',name:'Hip flexor stretch',note:'2 min per side',sets:'2min/side',n:0},
+      {id:'p2tc-gbband',name:'Glute bridge with band',note:'Band above knees',sets:'2×15',n:2},
+      {id:'p2tc-tr',name:'Thoracic rotation (kneeling)',note:'Key for paddling',sets:'10/side',n:0},
+    ]},
+    {t:'Stability & strength',time:'22 min',ex:[
+      {id:'p2tc-ws',tag:'squat',name:'Wall sit + alternating march',note:'March slowly in place during wall sit',sets:'3×60s',n:3},
+      {id:'p2tc-be',tag:'hinge',name:'Back extension + hold',note:'GHD — hold at top 2 sec',sets:'3×15',n:3,w:true},
+      {id:'p2tc-ring',tag:'pull',name:'Ring row or TRX',note:'Feet elevated — harder angle',sets:'4×12',n:4,w:true},
+      {id:'p2tc-pudd',tag:'push',name:'Push-up to downward dog',note:'Slow and deliberate',sets:'3×12',n:3},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p2tc-iso',tag:'knee',name:'Isometric leg ext hold',note:'3 sec hold at end range',sets:'3×12/side',n:3},
+      {id:'p2tc-nc',tag:'knee',name:'Nordic curl',note:'Eccentric always slow',sets:'3×8',n:3},
+      {id:'p2tc-cr',tag:'knee',name:'Single-leg calf raise',note:'3 sec lower. Both legs up, one leg down.',sets:'3×15/side',n:3},
+      {id:'p2tc-cop',tag:'core',name:'Copenhagen plank',note:'',sets:'3×35s/side',n:3},
+    ]},
+  ]},
+]}}
+
+// PHASE 3 GYM MON — race-specific strength
+function buildP3GymMon(){return{vars:[
+  {label:'Variation A — heavy carries & pulls',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p3ma-wgs',name:"World's greatest stretch",note:'Hip flexor + thoracic',sets:'3/side',n:0},
+      {id:'p3ma-slgb',name:'Single-leg glute bridge',note:'2 sec pause, note any asymmetry',sets:'2×12/side',n:2},
+      {id:'p3ma-fp',name:'Face pull + external rotation',note:'Shoulder health for paddling',sets:'2×15',n:2},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p3ma-sq',tag:'squat',name:'Barbell back squat',note:'Heavy — 4–5 rep strength sets',sets:'4×5',n:4,w:true},
+      {id:'p3ma-rdl',tag:'hinge',name:'Romanian deadlift',note:'Heaviest of the training plan',sets:'4×6',n:4,w:true},
+      {id:'p3ma-pu',tag:'pull',name:'Weighted pull-up',note:'Belt or vest — full ROM',sets:'4×5–6',n:4,w:true},
+      {id:'p3ma-bp',tag:'push',name:'Barbell bench press',note:'Heavy — shoulder stability',sets:'3×6',n:3,w:true},
+      {id:'p3ma-fc',tag:'carry',name:'Heavy farmer carry',note:'Race-weight simulation — 60m',sets:'4×60m',n:4,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p3ma-tle',tag:'knee',name:'Terminal leg extension',note:'Heavier band. Last 30° only.',sets:'3×15',n:3},
+      {id:'p3ma-nc',tag:'knee',name:'Nordic curl',note:'Eccentric always slow — never compromise',sets:'3×8–10',n:3},
+      {id:'p3ma-lj',tag:'knee',name:'Single-leg landing drill',note:'Drop and hold — knee must track over toes',sets:'3×10/side',n:3},
+    ]},
+  ]},
+  {label:'Variation B — hill & power',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p3mb-lbw',name:'Lateral band walk',note:'Mini band above knees',sets:'2×15/side',n:2},
+      {id:'p3mb-cos',name:'Cossack squat',note:'Bodyweight, deep range',sets:'2×8/side',n:2},
+      {id:'p3mb-skip',name:'Skipping',note:'2 min — gets the heart rate up',sets:'2 min',n:0},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p3mb-su',tag:'squat',name:'Weighted step-up (high box)',note:'Drive hard — simulates trail inclines',sets:'4×10/side',n:4,w:true},
+      {id:'p3mb-pcu',tag:'hinge',name:'Trap bar deadlift',note:'Explosive concentric, controlled eccentric',sets:'4×5',n:4,w:true},
+      {id:'p3mb-kbrow',tag:'pull',name:'Heavy KB/DB row',note:'Explosive pull — power not patience',sets:'4×8/side',n:4,w:true},
+      {id:'p3mb-dip',tag:'push',name:'Weighted dip',note:'Belt or vest. Full depth.',sets:'3×8',n:3,w:true},
+      {id:'p3mb-ohc',tag:'carry',name:'Overhead carry',note:'One arm, 40m per side — shoulder endurance',sets:'4×40m/side',n:4,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p3mb-slp',tag:'knee',name:'Single-leg press (shallow)',note:'Heaviest of the program',sets:'3×10/side',n:3,w:true},
+      {id:'p3mb-ss',tag:'knee',name:'Spanish squat',note:'Hold 45 sec, squeeze VMO hard',sets:'3×45s',n:3},
+      {id:'p3mb-cop',tag:'core',name:'Copenhagen plank',note:'40 sec per side',sets:'3×40s/side',n:3},
+    ]},
+  ]},
+  {label:'Variation C — pre-fatigue brick prep',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p3mc-9090',name:'Hip 90/90 stretch',note:'2 min per side',sets:'2min/side',n:0},
+      {id:'p3mc-cc',name:'Cat-cow',note:'Full range',sets:'10 reps',n:0},
+      {id:'p3mc-slgb',name:'Single-leg glute bridge',note:'',sets:'2×12/side',n:2},
+    ]},
+    {t:'Main lifts',time:'35 min',ex:[
+      {id:'p3mc-rfess',tag:'squat',name:'RFESS superset — DB squat',note:'8 RFESS immediately into 8 goblet squat, no rest',sets:'4 rounds/side',n:4,w:true},
+      {id:'p3mc-slrdl',tag:'hinge',name:'Single-leg RDL — heaviest',note:'Heavy and controlled',sets:'4×8/side',n:4,w:true},
+      {id:'p3mc-sarow',tag:'pull',name:'Single-arm row',note:'Heavy. Core braced.',sets:'4×10/side',n:4,w:true},
+      {id:'p3mc-pudd',tag:'push',name:'Push-up to downward dog',note:'5 slow push-ups + down dog. 10 rounds.',sets:'3×10',n:3},
+      {id:'p3mc-suit',tag:'carry',name:'Suitcase + overhead carry combo',note:'40m suitcase then press overhead, return',sets:'3 rounds/side',n:3,w:true},
+    ]},
+    {t:'ACL prehab',time:'10 min',acl:true,ex:[
+      {id:'p3mc-tle',tag:'knee',name:'Terminal leg extension',note:'Last 30° only. Heavy.',sets:'3×15',n:3},
+      {id:'p3mc-nc',tag:'knee',name:'Nordic curl',note:'Non-negotiable slow eccentric',sets:'3×10',n:3},
+      {id:'p3mc-wsvmo',tag:'knee',name:'Wall sit + VMO pulse',note:'Hold 45s, pulse quad for last 15s',sets:'3×45s',n:3},
+    ]},
+  ]},
+]}}
+
+// PHASE 3 GYM THU
+function buildP3GymThu(){return{vars:[
+  {label:'Variation A — race-specific stability',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p3ta-lbw',name:'Lateral band walk',note:'Mini band above knees',sets:'2×15/side',n:2},
+      {id:'p3ta-9090',name:'Hip 90/90 + reach',note:'Reach arm across body at end range',sets:'8/side',n:0},
+      {id:'p3ta-wgs',name:"World's greatest stretch",note:'',sets:'3/side',n:0},
+    ]},
+    {t:'Race-specific strength',time:'22 min',ex:[
+      {id:'p3ta-su',tag:'squat',name:'High box step-up + drive',note:'Mimics steep trail. Drive knee hard.',sets:'4×12/side',n:4,w:true},
+      {id:'p3ta-slrdl',tag:'hinge',name:'Single-leg RDL',note:'Heavy. Ankle stability is the bonus.',sets:'4×8/side',n:4,w:true},
+      {id:'p3ta-ld',tag:'pull',name:'Lat pulldown',note:'Heavy. Paddle-specific.',sets:'4×10',n:4,w:true},
+      {id:'p3ta-lmp',tag:'push',name:'Landmine press',note:'Heaviest yet. Paddle mechanics.',sets:'3×10/side',n:3,w:true},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p3ta-tle',tag:'knee',name:'Terminal leg extension',note:'Heavy band or cable',sets:'3×15',n:3},
+      {id:'p3ta-nc',tag:'knee',name:'Nordic curl',note:'Add reps — aim for 10 this phase',sets:'3×10',n:3},
+      {id:'p3ta-cop',tag:'core',name:'Copenhagen plank',note:'40 sec per side',sets:'3×40s/side',n:3},
+      {id:'p3ta-pp',tag:'core',name:'Pallof press',note:'Heaviest of the plan',sets:'3×12/side',n:3},
+    ]},
+  ]},
+  {label:'Variation B — fatigue resistance',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p3tb-skip',name:'Skipping / jump rope',note:'3 min — get warm fast',sets:'3 min',n:0},
+      {id:'p3tb-cos',name:'Cossack squat',note:'Wide + deep',sets:'2×10/side',n:2},
+      {id:'p3tb-cars',name:'Shoulder CARs',note:'Full range — paddle prep',sets:'10/side',n:0},
+    ]},
+    {t:'Race-specific strength',time:'22 min',ex:[
+      {id:'p3tb-bss',tag:'squat',name:'Bulgarian split squat',note:'Heaviest sets — 3 sec descent',sets:'4×8/side',n:4,w:true},
+      {id:'p3tb-slc',tag:'hinge',name:'Sliding leg curl',note:'Even slower eccentric than Phase 2',sets:'4×10',n:4},
+      {id:'p3tb-sarow',tag:'pull',name:'Heavy single-arm row',note:'No momentum. Control.',sets:'4×10/side',n:4,w:true},
+      {id:'p3tb-plyo',tag:'power',name:'Plyo push-up',note:'Explosive — race-pace upper body power',sets:'3×10',n:3},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p3tb-ss',tag:'knee',name:'Spanish squat hold',note:'50 sec holds',sets:'3×50s',n:3},
+      {id:'p3tb-slp',tag:'knee',name:'Single-leg press (shallow)',note:'Heavy and symmetrical',sets:'3×10/side',n:3,w:true},
+      {id:'p3tb-chop',tag:'core',name:'Rotational cable chop',note:'Heavy — full hip rotation',sets:'3×12/side',n:3,w:true},
+      {id:'p3tb-db',tag:'core',name:'Dead bug (weighted)',note:'Hold light DB overhead',sets:'3×10/side',n:3},
+    ]},
+  ]},
+  {label:'Variation C — tendon & joint health',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p3tc-hfs',name:'Hip flexor stretch (kneeling)',note:'2 min per side — hips get tight with big weeks',sets:'2min/side',n:0},
+      {id:'p3tc-fr',name:'Thoracic opener (foam roller)',note:'T-spine extension',sets:'2 min',n:0},
+      {id:'p3tc-fp',name:'Face pull',note:'Shoulder health priority',sets:'3×15',n:3},
+    ]},
+    {t:'Race-specific strength',time:'22 min',ex:[
+      {id:'p3tc-ws',tag:'squat',name:'Wall sit (single-leg)',note:'Full weight on one leg. 50 sec.',sets:'3×50s/side',n:3},
+      {id:'p3tc-be',tag:'hinge',name:'45° back extension',note:'Heavy. Hold at top 2 sec.',sets:'3×15',n:3,w:true},
+      {id:'p3tc-papf',tag:'pull',name:'Pull-apart + face pull superset',note:'Shoulder durability for race paddle',sets:'3 rounds',n:3},
+      {id:'p3tc-bpu',tag:'push',name:'Feet-elevated push-up',note:'High feet — upper chest + anterior shoulder',sets:'3×15',n:3},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p3tc-iso',tag:'knee',name:'Isometric leg ext hold',note:'30° hold for 45 sec — peak VMO demand',sets:'3×45s/side',n:3},
+      {id:'p3tc-nc',tag:'knee',name:'Nordic curl',note:'Never skip. Slow eccentric.',sets:'3×10',n:3},
+      {id:'p3tc-cr',tag:'knee',name:'Single-leg calf raise + lower',note:'3 sec eccentric — Achilles protection',sets:'3×15/side',n:3},
+      {id:'p3tc-cop',tag:'core',name:'Copenhagen plank',note:'45 sec per side',sets:'3×45s/side',n:3},
+    ]},
+  ]},
+]}}
+
+// PHASE 4 GYM MON — activation, not loading
+function buildP4GymMon(){return{vars:[
+  {label:'Variation A — activation & feel',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p4ma-wgs',name:"World's greatest stretch",note:'Hip flexor + thoracic rotation',sets:'3/side',n:0},
+      {id:'p4ma-slgb',name:'Single-leg glute bridge',note:'Feel the glutes fire — quality not quantity',sets:'2×10/side',n:2},
+      {id:'p4ma-fp',name:'Face pull',note:'Shoulder activation',sets:'2×15',n:2},
+    ]},
+    {t:'Activation lifts',time:'25 min',ex:[
+      {id:'p4ma-sq',tag:'squat',name:'Barbell back squat',note:'Moderate weight — 60–70% of Phase 3 max. Feel good.',sets:'2×6',n:2,w:true},
+      {id:'p4ma-rdl',tag:'hinge',name:'Romanian deadlift',note:'Light to moderate. Hamstring activation.',sets:'2×8',n:2,w:true},
+      {id:'p4ma-pu',tag:'pull',name:'Pull-up or lat pulldown',note:'Easy reps — keep the movement sharp',sets:'2×8',n:2,w:true},
+      {id:'p4ma-press',tag:'push',name:'DB press',note:'Light. Shoulder health.',sets:'2×10',n:2,w:true},
+      {id:'p4ma-fc',tag:'carry',name:"Farmer's carry",note:'Moderate weight, 40m. Feel strong.',sets:'2×40m',n:2,w:true},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p4ma-tle',tag:'knee',name:'Terminal leg extension',note:'Light. Activation only.',sets:'2×15',n:2},
+      {id:'p4ma-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric — maintain the habit',sets:'2×8',n:2},
+      {id:'p4ma-cop',tag:'core',name:'Copenhagen plank',note:'30 sec per side',sets:'2×30s/side',n:2},
+    ]},
+  ]},
+  {label:'Variation B — race readiness',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p4mb-9090',name:'Hip 90/90 + thoracic rotation',note:'Relax into it',sets:'2min/side',n:0},
+      {id:'p4mb-lbw',name:'Lateral band walk',note:'Wake up the glutes',sets:'2×10/side',n:2},
+      {id:'p4mb-skip',name:'Skipping',note:'2 min easy — get the heart rate up',sets:'2 min',n:0},
+    ]},
+    {t:'Activation lifts',time:'25 min',ex:[
+      {id:'p4mb-rfess',tag:'squat',name:'Split squat',note:'Bodyweight or very light. Single-leg feel.',sets:'2×8/side',n:2,w:true},
+      {id:'p4mb-trap',tag:'hinge',name:'Trap bar deadlift',note:'Light. Hinge pattern maintenance.',sets:'2×6',n:2,w:true},
+      {id:'p4mb-sarow',tag:'pull',name:'Single-arm DB row',note:'Light. Paddle activation.',sets:'2×10/side',n:2,w:true},
+      {id:'p4mb-pu',tag:'push',name:'Push-up',note:'Bodyweight. Crisp and controlled.',sets:'2×12',n:2},
+      {id:'p4mb-ohc',tag:'carry',name:'Overhead carry',note:'Light. Feel the overhead stability.',sets:'2×30m/side',n:2,w:true},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p4mb-slp',tag:'knee',name:'Single-leg press (shallow)',note:'Moderate. Symmetry check.',sets:'2×10/side',n:2,w:true},
+      {id:'p4mb-ss',tag:'knee',name:'Spanish squat hold',note:'30 sec. Feel the VMO.',sets:'2×30s',n:2},
+      {id:'p4mb-pp',tag:'core',name:'Pallof press',note:'Anti-rotation. Keep the core sharp.',sets:'2×10/side',n:2},
+    ]},
+  ]},
+  {label:'Variation C — light and sharp',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p4mc-cos',name:'Cossack squat',note:'Relaxed and full range',sets:'2×8/side',n:2},
+      {id:'p4mc-cc',name:'Cat-cow',note:'Spinal mobility',sets:'10 reps',n:0},
+      {id:'p4mc-cars',name:'Shoulder CARs',note:'Full range',sets:'10/side',n:0},
+    ]},
+    {t:'Activation lifts',time:'25 min',ex:[
+      {id:'p4mc-gs',tag:'squat',name:'Goblet squat',note:'Back to where we started — light and perfect form',sets:'2×10',n:2,w:true},
+      {id:'p4mc-sl',tag:'hinge',name:'Single-leg RDL',note:'Bodyweight or very light. Balance focus.',sets:'2×8/side',n:2},
+      {id:'p4mc-ring',tag:'pull',name:'Ring / TRX row',note:'Bodyweight. Shoulder health.',sets:'2×12',n:2},
+      {id:'p4mc-pudd',tag:'push',name:'Push-up to downward dog',note:'5 reps. Relaxed.',sets:'2×5',n:2},
+      {id:'p4mc-suit',tag:'carry',name:'Suitcase carry',note:'Light. Core activation.',sets:'2×30m/side',n:2,w:true},
+    ]},
+    {t:'ACL prehab',time:'12 min',acl:true,ex:[
+      {id:'p4mc-tle',tag:'knee',name:'Terminal leg extension',note:'Light. Last 30°.',sets:'2×15',n:2},
+      {id:'p4mc-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric. Maintain the gains.',sets:'2×8',n:2},
+      {id:'p4mc-wsvmo',tag:'knee',name:'Wall sit + VMO squeeze',note:'30 sec. Calm and controlled.',sets:'2×30s',n:2},
+    ]},
+  ]},
+]}}
+
+// PHASE 4 GYM THU — minimal, maintenance
+function buildP4GymThu(){return{vars:[
+  {label:'Variation A — full body easy',blocks:[
+    {t:'Warm-up',time:'8 min',ex:[
+      {id:'p4ta-9090',name:'Hip 90/90 stretch',note:'2 min per side',sets:'2min/side',n:0},
+      {id:'p4ta-cc',name:'Cat-cow',note:'Full range',sets:'10 reps',n:0},
+      {id:'p4ta-tr',name:'Thoracic rotation (kneeling)',note:'Paddle prep',sets:'8/side',n:0},
+    ]},
+    {t:'Light strength',time:'20 min',ex:[
+      {id:'p4ta-bss',tag:'squat',name:'Split squat',note:'Light DBs. Single-leg activation.',sets:'2×8/side',n:2,w:true},
+      {id:'p4ta-slrdl',tag:'hinge',name:'Single-leg RDL',note:'Light. Balance and feel.',sets:'2×8/side',n:2},
+      {id:'p4ta-ld',tag:'pull',name:'Lat pulldown',note:'Light. Paddle activation.',sets:'2×12',n:2,w:true},
+      {id:'p4ta-pu',tag:'push',name:'Push-up',note:'Easy. Controlled.',sets:'2×12',n:2},
+    ]},
+    {t:'ACL prehab',time:'14 min',acl:true,ex:[
+      {id:'p4ta-tle',tag:'knee',name:'Terminal leg extension',note:'Light. Activation.',sets:'2×15',n:2},
+      {id:'p4ta-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric. Always.',sets:'2×8',n:2},
+      {id:'p4ta-cop',tag:'core',name:'Copenhagen plank',note:'25 sec per side',sets:'2×25s/side',n:2},
+      {id:'p4ta-pp',tag:'core',name:'Pallof press',note:'Light band. Anti-rotation maintenance.',sets:'2×10/side',n:2},
+    ]},
+  ]},
+  {label:'Variation B — mobility emphasis',blocks:[
+    {t:'Warm-up',time:'10 min',ex:[
+      {id:'p4tb-hfs',name:'Hip flexor stretch (kneeling)',note:'3 min per side — extended hold',sets:'3min/side',n:0},
+      {id:'p4tb-fr',name:'Thoracic foam roller',note:'T-spine extension',sets:'3 min',n:0},
+      {id:'p4tb-wgs',name:"World's greatest stretch",note:'Slow and deliberate',sets:'4/side',n:0},
+    ]},
+    {t:'Light strength',time:'18 min',ex:[
+      {id:'p4tb-ws',tag:'squat',name:'Wall sit',note:'Both legs. 60 sec. Easy.',sets:'2×60s',n:2},
+      {id:'p4tb-be',tag:'hinge',name:'Back extension',note:'Bodyweight. Posterior chain activation.',sets:'2×15',n:2},
+      {id:'p4tb-papf',tag:'pull',name:'Pull-apart + face pull',note:'Shoulder health. Easy.',sets:'3 rounds',n:3},
+      {id:'p4tb-pudd',tag:'push',name:'Push-up to downward dog',note:'5 reps. Very relaxed.',sets:'2×5',n:2},
+    ]},
+    {t:'ACL prehab',time:'14 min',acl:true,ex:[
+      {id:'p4tb-iso',tag:'knee',name:'Isometric leg ext hold',note:'30 sec. Activation only.',sets:'2×30s/side',n:2},
+      {id:'p4tb-nc',tag:'knee',name:'Nordic curl',note:'Maintain the habit. Always slow.',sets:'2×8',n:2},
+      {id:'p4tb-cr',tag:'knee',name:'Calf raise + eccentric lower',note:'Race week legs need happy calves.',sets:'2×12/side',n:2},
+      {id:'p4tb-cop',tag:'core',name:'Copenhagen plank',note:'25 sec per side',sets:'2×25s/side',n:2},
+    ]},
+  ]},
+  {label:'Variation C — pre-race tune-up',blocks:[
+    {t:'Warm-up',time:'10 min',ex:[
+      {id:'p4tc-lbw',name:'Lateral band walk',note:'Wake the glutes up',sets:'2×10/side',n:2},
+      {id:'p4tc-cos',name:'Cossack squat',note:'Hip mobility',sets:'2×6/side',n:2},
+      {id:'p4tc-cars',name:'Shoulder CARs',note:'Full range',sets:'10/side',n:0},
+    ]},
+    {t:'Light strength',time:'18 min',ex:[
+      {id:'p4tc-gs',tag:'squat',name:'Goblet squat',note:'Light. Perfect form. Celebrate how far you have come.',sets:'2×10',n:2,w:true},
+      {id:'p4tc-slrdl',tag:'hinge',name:'Single-leg RDL',note:'Bodyweight. Balance check.',sets:'2×8/side',n:2},
+      {id:'p4tc-ring',tag:'pull',name:'TRX / ring row',note:'Bodyweight. Paddle activation.',sets:'2×12',n:2},
+      {id:'p4tc-pu',tag:'push',name:'Push-up',note:'Controlled. Easy.',sets:'2×12',n:2},
+    ]},
+    {t:'ACL prehab',time:'14 min',acl:true,ex:[
+      {id:'p4tc-tle',tag:'knee',name:'Terminal leg extension',note:'Light. VMO activation.',sets:'2×15',n:2},
+      {id:'p4tc-nc',tag:'knee',name:'Nordic curl',note:'One last slow eccentric session before race day.',sets:'2×8',n:2},
+      {id:'p4tc-ss',tag:'knee',name:'Spanish squat hold',note:'30 sec. Feel strong.',sets:'2×30s',n:2},
+      {id:'p4tc-cop',tag:'core',name:'Copenhagen plank',note:'25 sec. Calm.',sets:'2×25s/side',n:2},
+    ]},
+  ]},
+]}}
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let curPhaseId = 0;
+let curWeek = 0;
+let curDayIdx = 0;
+let varMon = [0,0,0,0];
+let varThu = [0,0,0,0];
+
+function curPhase(){ return getPhases()[curPhaseId]; }
+
+function initWeek(){
+  const ph = curPhase();
+  const ms = TODAY - ph.start;
+  curWeek = ms>=0 ? Math.min(Math.floor(ms/604800000), ph.weeks-1) : 0;
+}
+function isDeload(wk){ return curPhase().deloadWeeks.includes(wk); }
+
+function getWeekDays(wk){
+  const ph = curPhase();
+  return Array.from({length:7},(_,i)=>{
+    const d = new Date(ph.start);
+    d.setDate(d.getDate()+wk*7+i);
+    return d;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCREEN TRANSITIONS
+// ═══════════════════════════════════════════════════════════════
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('screen-'+id).classList.remove('hidden');
+  document.getElementById('screen-'+id).scrollTop=0;
+}
+function slideIn(id, fromId){
+  document.getElementById('screen-'+fromId).classList.add('slide-left');
+  document.getElementById('screen-'+fromId).classList.remove('hidden');
+  document.getElementById('screen-'+id).classList.remove('hidden');
+  document.getElementById('screen-'+id).scrollTop=0;
+}
+function slideBack(showId, hideId){
+  document.getElementById('screen-'+hideId).classList.add('hidden');
+  document.getElementById('screen-'+showId).classList.remove('slide-left');
+  document.getElementById('screen-'+showId).classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OVERVIEW SCREEN
+// ═══════════════════════════════════════════════════════════════
+function renderOverview(){
+  // Stats
+  let totalDone=0, totalSesh=0;
+  getPhases().forEach((ph,pi)=>{
+    for(let wk=0;wk<ph.weeks;wk++){
+      ph.schedule.forEach((s,di)=>{
+        if(s.type!=='rest'){ totalSesh++; if(isDone(`p${pi}_w${wk}_d${di}_${s.sk}`)) totalDone++; }
+      });
+    }
+  });
+  const pct = totalSesh>0 ? Math.round(totalDone/totalSesh*100) : 0;
+  document.getElementById('ov-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${totalDone}<span style="font-size:10px;color:var(--text3)">/${totalSesh}</span></div><div class="stat-label">Sessions done</div></div>
+    <div class="stat-card"><div class="stat-val">${pct}<span style="font-size:10px;color:var(--text3)">%</span></div><div class="stat-label">Complete</div></div>
+    <div class="stat-card"><div class="stat-val">47</div><div class="stat-label">Weeks total</div></div>`;
+
+  document.getElementById('phase-cards').innerHTML=getPhases().map(ph=>{
+    let phDone=0,phTotal=0;
+    for(let wk=0;wk<ph.weeks;wk++){
+      ph.schedule.forEach((s,di)=>{
+        if(s.type!=='rest'){phTotal++;if(isDone(`p${ph.id}_w${wk}_d${di}_${s.sk}`))phDone++;}
+      });
+    }
+    const phPct=phTotal>0?Math.round(phDone/phTotal*100):0;
+    const colors=['#4daa7e','#5a9fd4','#9b6dd6','#e07855'];
+    return `<div class="phase-card" onclick="openPhase(${ph.id})">
+      <div class="phase-card-accent" style="background:${ph.accentGrad}"></div>
+      <div style="margin-left:12px">
+        <div class="pc-num">${ph.sub}</div>
+        <div class="pc-name">${ph.name}</div>
+        <div class="pc-dates">${ph.dates} · ${ph.weeks} weeks</div>
+        <div class="pc-chips">
+          <div class="pc-chip">${ph.hours} hrs/wk</div>
+          <div class="pc-chip">${ph.focus}</div>
+          <div class="pc-chip">${phDone}/${phTotal} sessions</div>
+        </div>
+        <div class="pc-progress"><div class="pc-progress-fill" style="width:${phPct}%;background:${colors[ph.id]}"></div></div>
+      </div>
+      <div class="pc-arrow">→</div>
+    </div>`;
+  }).join('');
+}
+
+function openPhase(id){
+  curPhaseId=id;
+  initWeek();
+  renderPhase();
+  slideIn('phase','overview');
+}
+function goOverview(){
+  renderOverview();
+  slideBack('overview','phase');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE HOME
+// ═══════════════════════════════════════════════════════════════
+function renderPhase(){
+  const ph=curPhase();
+  document.getElementById('ph-title').innerHTML=`${ph.sub}<br><span style="color:var(--accent)">${ph.name}</span>`;
+  document.getElementById('ph-meta').textContent=`${ph.dates} · ${ph.weeks} weeks`;
+  document.getElementById('ph-desc').textContent=ph.desc;
+
+  const deload=isDeload(curWeek);
+  document.getElementById('week-nav-label').textContent=`Week ${curWeek+1}${deload?' · deload':''}`;
+
+  const days=getWeekDays(curWeek);
+  const sched=ph.schedule;
+
+  // Stats
+  const total=sched.filter(s=>s.type!=='rest').length;
+  const done=sched.filter((s,i)=>s.type!=='rest'&&isDone(`p${ph.id}_w${curWeek}_d${i}_${s.sk}`)).length;
+  document.getElementById('stats-bar').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${curWeek+1}<span style="font-size:10px;color:var(--text3)">/${ph.weeks}</span></div><div class="stat-label">Week</div></div>
+    <div class="stat-card"><div class="stat-val">${done}<span style="font-size:10px;color:var(--text3)">/${total}</span></div><div class="stat-label">Done</div></div>
+    <div class="stat-card"><div class="stat-val" style="font-size:12px">${deload?'↓':''}${ph.hours}</div><div class="stat-label">Hrs/wk</div></div>
+    <div class="stat-card"><div class="stat-val" style="font-size:12px">${deload?'⬇':ph.focus.slice(0,4)}</div><div class="stat-label">${deload?'Deload':'Focus'}</div></div>`;
+
+  // Calendar
+  const colMap={run:'run',bike:'bike',paddle:'paddle',gym:'gym',double:'bike',double2:'gym',double3:'gym',double4:'gym',brick:'brick',rest:'rest'};
+  document.getElementById('cal-grid').innerHTML=sched.map((s,i)=>{
+    const d=days[i];
+    const isToday=d.toDateString()===TODAY.toDateString();
+    const done=s.type!=='rest'&&isDone(`p${ph.id}_w${curWeek}_d${i}_${s.sk}`);
+    const dn=d.getDate(), mo=d.toLocaleDateString('en-NZ',{month:'short'});
+    let pips='';
+    if(s.type==='double'||s.type==='double2'||s.type==='double3'||s.type==='double4') pips=`<div class="cal-pip bike"></div><div class="cal-pip gym"></div>`;
+    else if(s.type!=='rest') pips=`<div class="cal-pip ${colMap[s.color]||s.color}"></div>`;
+    const click=s.type!=='rest'?`onclick="openSesh(${i})"`:' ';
+    return `<div class="cal-cell${s.type==='rest'?' rest-day':''}${isToday?' today':''}${done?' done-cell':''}" ${click}>
+      <div class="cal-date">${dn}<span style="font-size:8px;color:var(--text3);margin-left:2px">${mo}</span></div>
+      ${pips}
+      <div class="cal-label">${s.label}</div>
+      ${done?'<div class="cal-tick">✓</div>':''}
+    </div>`;
+  }).join('');
+
+  // List
+  const colHex={run:'var(--run)',bike:'var(--bike)',paddle:'var(--paddle)',gym:'var(--gym)',double:'var(--bike)',double2:'var(--gym)',double3:'var(--gym)',double4:'var(--gym)',brick:'var(--brick)'};
+  document.getElementById('session-list').innerHTML=sched.map((s,i)=>{
+    if(s.type==='rest') return '';
+    const d=days[i];
+    const dayName=d.toLocaleDateString('en-NZ',{weekday:'long'});
+    const done=isDone(`p${ph.id}_w${curWeek}_d${i}_${s.sk}`);
+    return `<div class="sesh-row${done?' done-row':''}" onclick="openSesh(${i})">
+      <div class="sesh-bar" style="background:${colHex[s.color]||'var(--text3)'}"></div>
+      <div class="sesh-info"><div class="sesh-day">${dayName}</div><div class="sesh-sub">${s.label} · ${s.sub}</div></div>
+      <div class="sesh-arrow${done?' done':''}">${done?'✓':'→'}</div>
+    </div>`;
+  }).join('');
+}
+
+function prevWeek(){ if(curWeek>0){curWeek--;renderPhase();} }
+function nextWeek(){ if(curWeek<curPhase().weeks-1){curWeek++;renderPhase();} }
+
+// ═══════════════════════════════════════════════════════════════
+// SESSION DETAIL
+// ═══════════════════════════════════════════════════════════════
+function openSesh(dayIdx){
+  curDayIdx=dayIdx;
+  const ph=curPhase();
+  const s=ph.schedule[dayIdx];
+  const d=getWeekDays(curWeek)[dayIdx];
+  document.getElementById('d-title').textContent=s.label;
+  document.getElementById('d-sub').textContent=d.toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'short'});
+
+  const sk=`p${ph.id}_w${curWeek}_d${dayIdx}_${s.sk}`;
+  let html='';
+
+  if(s.type==='gym') html=buildGym('mon');
+  else if(s.type==='double') html=buildDouble('mon','thu');
+  else if(s.type==='double2') html=buildDouble2();
+  else if(s.type==='double3') html=buildDouble3();
+  else if(s.type==='double4') html=buildDouble4();
+  else html=buildCardio(s);
+
+  const done=isDone(sk);
+  html+=`<button class="done-btn${done?' completed':''}" id="done-btn" onclick="tapDone('${sk}')">${done?'✓ Session completed':'Mark as completed'}</button>`;
+  document.getElementById('detail-content').innerHTML=html;
+  slideIn('detail','phase');
+}
+
+function goPhase(){
+  renderPhase();
+  slideBack('phase','detail');
+}
+
+function tapDone(sk){
+  toggleDone(sk);
+  const done=isDone(sk);
+  const btn=document.getElementById('done-btn');
+  btn.textContent=done?'✓ Session completed':'Mark as completed';
+  btn.classList.toggle('completed',done);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BUILD GYM
+// ═══════════════════════════════════════════════════════════════
+function buildGym(which){
+  const ph=curPhase();
+  const data=ph.gymData[which];
+  const vi=which==='mon'?varMon[curPhaseId]:varThu[curPhaseId];
+  const v=data.vars[vi];
+  const wk=curWeek;
+  const labels={
+    0:{mon:'Strength',thu:'Mobility & Core'},
+    1:{mon:'Power',thu:'Heavy Single-Leg'},
+    2:{mon:'Race Strength',thu:'Race-Specific'},
+    3:{mon:'Activation',thu:'Maintenance'},
+  };
+  const phLabel=labels[curPhaseId]||{mon:'Strength',thu:'Mobility'};
+
+  let html=`<div class="detail-hero gym">
+    <div class="hero-type gym">Gym · ${which==='mon'?phLabel.mon:phLabel.thu}</div>
+    <div class="hero-name">${v.label.split('—')[1]?v.label.split('—')[1].trim():v.label}</div>
+    <div class="hero-meta">~60 min · Phase ${curPhaseId+1} · Week ${wk+1}${isDeload(wk)?' · deload':''}</div>
+    <div class="hero-chips">
+      <span class="hero-chip gym">Phase ${curPhaseId+1}</span>
+      <span class="hero-chip gym">ACL prehab</span>
+      ${isDeload(wk)?'<span class="hero-chip gym">deload ↓</span>':''}
+    </div>
+  </div>
+  <div class="var-row">
+    <span class="var-lbl">Rotate →</span>
+    ${['A','B','C'].map((l,i)=>`<button class="var-btn${i===vi?' active':''}" onclick="setVar('${which}',${i})">${l}</button>`).join('')}
+  </div>`;
+
+  v.blocks.forEach(block=>{
+    if(block.acl){
+      html+=`<div class="acl-card"><div class="acl-header"><div class="acl-dot"></div><div class="acl-lbl">ACL prehab · ${block.time}</div></div>`;
+    } else {
+      html+=`<div class="card"><div class="card-header"><div class="card-title">${block.t}</div><div class="card-badge">${block.time}</div></div>`;
+    }
+    block.ex.forEach(ex=>{
+      const tag=ex.tag?`<span class="tag-pill t-${ex.tag}">${ex.tag}</span>`:'';
+      const wkey=`${ex.id}_p${curPhaseId}_w${wk}`;
+      const weights=ex.w?getWts(ex.id,curPhaseId,wk):{};
+      const hasData=ex.w&&Object.keys(weights).length>0;
+      let wBtn='', panel='';
+      if(ex.w&&ex.n>0){
+        wBtn=`<button class="weight-btn${hasData?' has-data':''}" onclick="togglePanel('${wkey}',event)">${hasData?'⚖ logged':'+ weight'}</button>`;
+        const rows=Array.from({length:ex.n},(_,si)=>`
+          <div class="set-row">
+            <span class="set-num">S${si+1}</span>
+            <input class="set-input" type="number" inputmode="decimal" placeholder="kg" value="${weights['k'+si]||''}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'k${si}',this.value)">
+            <span class="set-unit">kg</span>
+            <input class="set-input" type="number" inputmode="numeric" placeholder="reps" value="${weights['r'+si]||''}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'r${si}',this.value)">
+            <span class="set-unit">reps</span>
+          </div>`).join('');
+        panel=`<div class="weight-panel" id="wp-${wkey}">
+          <div class="wp-title">Log weights — Phase ${curPhaseId+1} Week ${wk+1}</div>
+          <div class="set-rows">${rows}</div>
+          <button class="save-btn" onclick="closePanel('${wkey}','${ex.id}',${curPhaseId},${wk})">Save ✓</button>
+        </div>`;
+      }
+      html+=`<div><div class="ex-row">
+        <div class="ex-left">${tag}<span class="ex-name">${ex.name}</span>${ex.note?`<div class="ex-note">${ex.note}</div>`:''}</div>
+        <div class="ex-right"><span class="ex-sets">${ex.sets}</span>${wBtn}</div>
+      </div>${panel}</div>`;
+    });
+    html+=`</div>`;
+  });
+  return html;
+}
+
+function setVar(which,idx){
+  if(which==='mon') varMon[curPhaseId]=idx; else varThu[curPhaseId]=idx;
+  const s=curPhase().schedule[curDayIdx];
+  const sk=`p${curPhaseId}_w${curWeek}_d${curDayIdx}_${s.sk}`;
+  const done=isDone(sk);
+  let type=s.type;
+  let html='';
+  if(type==='gym') html=buildGym('mon');
+  else if(type==='double') html=buildDouble('mon','thu');
+  else if(type==='double2') html=buildDouble2();
+  else if(type==='double3') html=buildDouble3();
+  else if(type==='double4') html=buildDouble4();
+  html+=`<button class="done-btn${done?' completed':''}" id="done-btn" onclick="tapDone('${sk}')">${done?'✓ Session completed':'Mark as completed'}</button>`;
+  document.getElementById('detail-content').innerHTML=html;
+}
+
+// ─── DOUBLE SESSIONS ───
+function rideInfo(fields,tip){
+  return `<div class="card">${fields.map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div><div class="tip-box">${tip}</div>`;
+}
+
+function buildDouble(){
+  let html=`<div class="detail-hero double">
+    <div class="hero-type double">AM / PM stack · Phase 1</div>
+    <div class="hero-name">Ride + Gym</div>
+    <div class="hero-meta">60 min AM ride · 60 min PM gym</div>
+    <div class="hero-chips"><span class="hero-chip bike">AM · zone 2</span><span class="hero-chip gym">PM · core</span></div>
+  </div>
+  <div class="section-label" style="margin-top:4px">AM — Easy ride</div>`;
+  html+=rideInfo([{l:'Duration',v:'60 min'},{l:'Zone',v:'Zone 2'},{l:'Cadence',v:'80–90 rpm'},{l:'Effort',v:'Conversational'}],'Leave 4–6 hrs between sessions. Eat a proper meal in between. Drop gym sets if cooked — never skip the ride.');
+  html+=`<div class="section-label">PM — Gym (mobility & core)</div>`;
+  html+=buildGym('thu');
+  return html;
+}
+function buildDouble2(){
+  let html=`<div class="detail-hero double">
+    <div class="hero-type double">AM / PM stack · Phase 2</div>
+    <div class="hero-name">Gym + Threshold Run</div>
+    <div class="hero-meta">AM gym · PM threshold run · ~120 min total</div>
+    <div class="hero-chips"><span class="hero-chip gym">AM · power gym</span><span class="hero-chip run">PM · threshold</span></div>
+  </div>
+  <div class="section-label" style="margin-top:4px">AM — Strength gym</div>`;
+  html+=buildGym('mon');
+  html+=`<div class="section-label">PM — Threshold run</div>`;
+  html+=`<div class="card">${[{l:'Duration',v:'45 min total'},{l:'Structure',v:'10 min warm-up + 2×10 min tempo + cool-down'},{l:'Tempo feel',v:'Hard but sustainable for 10 min'},{l:'Zone',v:'Zone 3–4 for efforts'}].map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div>`;
+  html+=`<div class="tip-box">The threshold run should feel hard. If the morning gym session was tough, reduce to 1×10 min tempo and keep the rest easy.</div>`;
+  return html;
+}
+function buildDouble3(){
+  let html=`<div class="detail-hero double">
+    <div class="hero-type double">AM / PM stack · Phase 3</div>
+    <div class="hero-name">Race Strength + Hill Reps</div>
+    <div class="hero-meta">AM gym · PM hills · ~130 min total</div>
+    <div class="hero-chips"><span class="hero-chip gym">AM · race strength</span><span class="hero-chip run">PM · hill reps</span></div>
+  </div>
+  <div class="section-label" style="margin-top:4px">AM — Race strength gym</div>`;
+  html+=buildGym('mon');
+  html+=`<div class="section-label">PM — Hill reps</div>`;
+  html+=`<div class="card">${[{l:'Duration',v:'50 min total'},{l:'Structure',v:'10 min warm-up + 6×2 min hill reps + cool-down'},{l:'Hill gradient',v:'8–12% — steep but runnable'},{l:'Recovery',v:'Walk or jog down between reps'},{l:'Effort',v:'Hard — zone 4 on the way up'}].map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div>`;
+  html+=`<div class="tip-box">Hill reps are the highest quality running stimulus in the plan. Protect them — if the morning gym leaves you too flat, drop sets rather than skip the hills.</div>`;
+  return html;
+}
+function buildDouble4(){
+  let html=`<div class="detail-hero double">
+    <div class="hero-type double">AM / PM stack · Phase 4</div>
+    <div class="hero-name">Activation + Strides</div>
+    <div class="hero-meta">AM gym · PM strides · ~90 min total</div>
+    <div class="hero-chips"><span class="hero-chip gym">AM · activation</span><span class="hero-chip run">PM · strides</span></div>
+  </div>
+  <div class="section-label" style="margin-top:4px">AM — Activation gym</div>`;
+  html+=buildGym('mon');
+  html+=`<div class="section-label">PM — Easy run + strides</div>`;
+  html+=`<div class="card">${[{l:'Duration',v:'40 min total'},{l:'Structure',v:'30 min easy + 6×20 sec strides'},{l:'Stride effort',v:'Fast but relaxed — 90% max'},{l:'Recovery',v:'60 sec walk between strides'},{l:'Purpose',v:'Keep the legs sharp for race week'}].map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div>`;
+  html+=`<div class="tip-box">Strides wake the fast-twitch fibres up without creating fatigue. You should feel springy after these, not tired.</div>`;
+  return html;
+}
+
+// ─── CARDIO ───
+function buildCardio(s){
+  const ph=curPhase();
+  const d=ph.cardioData[s.sk];
+  if(!d) return `<div style="padding:20px 14px;color:var(--text2)">Session details coming soon.</div>`;
+  const c=d.type;
+  let html=`<div class="detail-hero ${c}">
+    <div class="hero-type ${c}">${c.toUpperCase()}</div>
+    <div class="hero-name">${d.title}</div>
+    <div class="hero-meta">Phase ${curPhaseId+1} · Week ${curWeek+1}${isDeload(curWeek)?' · reduce 30%':''}</div>
+    <div class="hero-chips"><span class="hero-chip ${c}">${ph.focus.toLowerCase()}</span>${isDeload(curWeek)?`<span class="hero-chip ${c}">deload ↓</span>`:''}</div>
+  </div>
+  <div class="card">${d.fields.map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div>`;
+  if(c!=='brick'){
+    html+=`<div class="zone-bar">
+      <div class="zone-title">Heart rate zones</div>
+      <div class="zone-row"><span class="zone-num">Z1</span><div class="zone-track z1"></div><span class="zone-tag avoid">easy</span></div>
+      <div class="zone-row"><span class="zone-num">Z2</span><div class="zone-track z2"></div><span class="zone-tag ${ph.id===0||ph.id===3?'target':'avoid'}">${ph.id===0||ph.id===3?'target ✓':'base'}</span></div>
+      <div class="zone-row"><span class="zone-num">Z3</span><div class="zone-track z3"></div><span class="zone-tag ${ph.id===1||ph.id===2?'target':'avoid'}">${ph.id===1||ph.id===2?'threshold':'avoid'}</span></div>
+      <div class="zone-row"><span class="zone-num">Z4</span><div class="zone-track z4"></div><span class="zone-tag avoid">race pace</span></div>
+    </div>`;
+  }
+  if(d.tip) html+=`<div class="tip-box">${d.tip}</div>`;
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WEIGHT PANEL
+// ═══════════════════════════════════════════════════════════════
+function togglePanel(wkey,e){
+  e.stopPropagation();
+  const p=document.getElementById('wp-'+wkey);
+  if(!p) return;
+  const open=p.classList.contains('open');
+  document.querySelectorAll('.weight-panel.open').forEach(x=>x.classList.remove('open'));
+  if(!open) p.classList.add('open');
+}
+function closePanel(wkey,exId,ph,wk){
+  const p=document.getElementById('wp-'+wkey);
+  if(p) p.classList.remove('open');
+  const w=getWts(exId,ph,wk);
+  const has=Object.keys(w).length>0;
+  document.querySelectorAll('.weight-btn').forEach(btn=>{
+    const oc=btn.getAttribute('onclick')||'';
+    if(oc.includes(`'${wkey}'`)){btn.classList.toggle('has-data',has);btn.textContent=has?'⚖ logged':'+ weight';}
+  });
+}
+function saveWt(exId,ph,wk,field,val){
+  const w=getWts(exId,ph,wk);
+  if(val===''||val===null) delete w[field]; else w[field]=val;
+  setWts(exId,ph,wk,w);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  const c=document.createElement('canvas'); c.width=c.height=192;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,0,192,192);
+  ctx.fillStyle='#e8ff47'; ctx.fillRect(24,52,144,22);
+  ctx.fillStyle='#e8e8e8'; ctx.font='bold 42px monospace'; ctx.textAlign='center'; ctx.fillText('C2C',96,138);
+  let link=document.querySelector('link[rel="apple-touch-icon"]');
+  if(!link){link=document.createElement('link');link.rel='apple-touch-icon';document.head.appendChild(link);}
+  link.href=c.toDataURL('image/png');
+});
+
+// Init
+renderOverview();
+show('overview');
+</script>
+</body>
+</html>
