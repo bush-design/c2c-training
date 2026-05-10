@@ -325,7 +325,7 @@ function setWts(id,ph,wk,data){store('wt_'+id+'_p'+ph+'_w'+wk,data)}
 // ═══════════════════════════════════════════════════════════════
 // PHASE DEFINITIONS
 // ═══════════════════════════════════════════════════════════════
-const TODAY = new Date(2026,4,7);
+const TODAY = new Date(); TODAY.setHours(0,0,0,0); // always tracks real date
 
 // PHASES is built lazily after all builder functions are defined
 let PHASES = null;
@@ -1362,9 +1362,38 @@ window.addEventListener('load',()=>{
   link.href=c.toDataURL('image/png');
 });
 
-// Init
-renderOverview();
-show('overview');
+// ── AUTO-OPEN CURRENT PHASE & WEEK ──
+// Detects which phase and week today falls in, opens directly to it.
+// If before training start or between phases, falls back to overview.
+function autoOpen() {
+  const phases = getPhases();
+  for (let pi = 0; pi < phases.length; pi++) {
+    const ph = phases[pi];
+    const msElapsed = TODAY - ph.start;
+    if (msElapsed >= 0) {
+      const weekIdx = Math.min(Math.floor(msElapsed / 604800000), ph.weeks - 1);
+      // Check we haven't passed into the next phase
+      if (pi < phases.length - 1) {
+        const nextStart = phases[pi + 1].start;
+        if (TODAY >= nextStart) continue; // already in a later phase
+      }
+      // Found the current phase — open it
+      curPhaseId = pi;
+      curWeek = weekIdx;
+      renderOverview(); // pre-render overview so back button works
+      renderPhase();
+      // Show phase screen directly, no slide animation on first load
+      document.getElementById('screen-overview').classList.add('slide-left');
+      document.getElementById('screen-phase').classList.remove('hidden');
+      return;
+    }
+  }
+  // Fallback: show overview (training hasn't started yet)
+  renderOverview();
+  show('overview');
+}
+
+autoOpen();
 </script>
 </body>
 </html>
