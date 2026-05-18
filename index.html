@@ -232,6 +232,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .done-btn:active{opacity:0.7}
 
 .pb{height:60px}
+
+/* ── DATA MANAGEMENT ── */
+.data-screen { padding: 52px 14px 14px; }
+.data-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.data-sub { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
+.data-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.data-card-title { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+.data-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.data-stat-row:last-child { border-bottom: none; }
+.data-stat-label { font-size: 13px; color: var(--text2); }
+.data-stat-val { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); }
+.data-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 13px 16px; border-radius: 8px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 10px; }
+.data-btn:active { opacity: 0.7; }
+.data-btn.export { border-color: var(--accent-border); background: var(--accent-dim); color: var(--accent); }
+.data-btn.import { border-color: var(--border2); }
+.data-btn.danger { border-color: rgba(224,85,85,0.3); background: rgba(224,85,85,0.06); color: var(--acl); }
+.data-btn-icon { font-family: 'DM Mono', monospace; font-size: 11px; color: inherit; opacity: 0.7; }
+.data-note { font-size: 11px; color: var(--text3); line-height: 1.6; margin-top: 6px; }
+.data-success { background: rgba(77,170,126,0.1); border: 1px solid rgba(77,170,126,0.3); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--run); margin-bottom: 10px; display: none; }
+.data-success.show { display: block; }
+/* Nav data button */
+.nav-data-btn { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); background: var(--bg3); border: 1px solid var(--border2); border-radius: 4px; padding: 5px 8px; cursor: pointer; margin-left: auto; letter-spacing: 0.04em; }
+.nav-data-btn:active { opacity: 0.6; }
+
 </style>
 </head>
 <body>
@@ -246,9 +270,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <!-- SCREEN: OVERVIEW -->
 <div class="screen" id="screen-overview">
   <div class="ov-header">
-    <div class="ov-logo">Coast to Coast · 2027</div>
-    <div class="ov-title">Training<br><span>Plan</span></div>
-    <div class="ov-meta">47 weeks · 4 phases · race day 13 Feb 2027</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="ov-logo">Coast to Coast · 2027</div>
+        <div class="ov-title">Training<br><span>Plan</span></div>
+        <div class="ov-meta">47 weeks · 4 phases · race day 13 Feb 2027</div>
+      </div>
+      <button class="nav-data-btn" onclick="openDataScreen()" style="margin-top:56px">data ⚙</button>
+    </div>
   </div>
   <div class="overall-stats" id="ov-stats"></div>
   <div class="section-label">Phases</div>
@@ -398,25 +427,25 @@ function p2Schedule(){return[
   {type:'run',     label:'Recovery Run', sub:'Easy · see plan',            color:'run',  sk:'run-rec'},
   {type:'gym',     label:'Gym',          sub:'Power + mobility + plyos',   color:'gym',  sk:'gym-mon'},
   {type:'run',     label:'Intervals',    sub:'See plan this week',         color:'run',  sk:'run-int'},
-  {type:'double2', label:'Gym + Run',    sub:'AM gym · PM threshold',      color:'gym',  sk:'double2'},
+  {type:'double2', label:'Ride + Gym',   sub:'AM ride · PM gym',           color:'bike', sk:'double2'},
   {type:'rest',    label:'Rest',         sub:'Recovery',                   color:'rest', sk:'rest'},
   {type:'run',     label:'Long Run',     sub:'See plan this week',         color:'run',  sk:'run-long'},
   {type:'ride-and-kayak', label:'Tempo Ride + Kayak', sub:'2 hrs tempo + kayak', color:'bike', sk:'bike-tempo', skKayak:'kayak'},
 ]}
 function p3Schedule(){return[
-  {type:'run',     label:'Recovery Run', sub:'Easy · see plan',            color:'run',  sk:'run-rec'},
+  {type:'run-or-ride', label:'Run or Ride', sub:'Recovery — your choice', color:'run', sk:'run-rec', skRide:'rec-ride'},
   {type:'gym',     label:'Gym',          sub:'Race strength + plyos',      color:'gym',  sk:'gym-mon'},
   {type:'run',     label:'Intervals',    sub:'See plan this week',         color:'run',  sk:'run-int'},
-  {type:'double3', label:'Gym + Hills',  sub:'AM gym · PM hills',          color:'gym',  sk:'double3'},
+  {type:'double3', label:'Ride + Gym',   sub:'AM ride · PM gym',           color:'bike', sk:'double3'},
   {type:'rest',    label:'Rest',         sub:'Recovery',                   color:'rest', sk:'rest'},
   {type:'run',     label:'Long Run',     sub:'See plan this week',         color:'run',  sk:'run-long'},
   {type:'ride-and-kayak', label:'Long Ride + Kayak', sub:'3.5–4 hrs ride + kayak', color:'bike', sk:'bike-long', skKayak:'kayak'},
 ]}
 function p4Schedule(){return[
-  {type:'run',     label:'Recovery Run', sub:'Easy · see plan',            color:'run',  sk:'run-rec'},
+  {type:'run-or-ride', label:'Run or Ride', sub:'Recovery — your choice', color:'run', sk:'run-rec', skRide:'rec-ride'},
   {type:'gym',     label:'Gym',          sub:'Activation + plyos',         color:'gym',  sk:'gym-mon'},
   {type:'run',     label:'Intervals',    sub:'See plan this week',         color:'run',  sk:'run-int'},
-  {type:'double4', label:'Gym + Strides',sub:'AM gym · PM strides',        color:'gym',  sk:'double4'},
+  {type:'double4', label:'Ride + Gym',   sub:'AM ride · PM gym',           color:'bike', sk:'double4'},
   {type:'rest',    label:'Rest',         sub:'Recovery',                   color:'rest', sk:'rest'},
   {type:'run',     label:'Long Run',     sub:'See plan this week',         color:'run',  sk:'run-long'},
   {type:'ride-and-kayak', label:'Easy Ride + Kayak', sub:'2 hrs easy ride + kayak', color:'bike', sk:'bike-easy', skKayak:'kayak'},
@@ -533,7 +562,7 @@ function getRunSessionFromData(d, sk, phaseId, weekIdx) {
   const recTip = 'Keep this genuinely easy. It should feel almost too slow — if you can hold a conversation easily, the pace is right.';
   const intTip = d.itype==='sprint' ? 'Full recovery between sprints. If you are not recovered, skip the rep — quality beats quantity every time.' :
                  d.itype==='tempo'  ? 'Tempo pace is uncomfortable but controlled. You could say a few words but not hold a conversation.' :
-                 'Hard efforts should be genuinely hard. Easy efforts mean walking pace if needed — no ego.';
+                 'Hard efforts should be genuinely hard. Easy efforts mean walking pace if needed — no ego. You can swap this session for hill reps (6-8 x 2 min steep hill) or a tempo run if you want variety — both build the same fitness.';
   const dist = parseFloat(d.lng);
   const longTip = dist > 35 ? 'Massive effort. Eat well the night before, start very slow, walk if needed. Finishing is the only goal.' :
                   dist > 25 ? 'Get on trail. Learn to run on tired legs — this is Goat Pass prep.' :
@@ -1157,6 +1186,26 @@ function goOverview(){
 // ═══════════════════════════════════════════════════════════════
 
 
+
+// ── MONDAY RUN-OR-RIDE (Phase 3 wk9+ and Phase 4) ────────────────────
+// Before marathon (P3 wks 0-8): always recovery run
+// After marathon (P3 wk9+) and Phase 4: user chooses run or ride
+function isRunOrRideWeek(phaseId, weekIdx) {
+  if (phaseId === 2) return weekIdx >= 9;  // Phase 3 from wk 9 onward (post-marathon)
+  if (phaseId === 3) return true;           // All of Phase 4
+  return false;
+}
+
+function getMondaySession(s, phaseId, weekIdx) {
+  if (s.type !== 'run-or-ride') return s;
+  if (!isRunOrRideWeek(phaseId, weekIdx)) {
+    // Still in running build — show as normal recovery run
+    return { ...s, type:'run', label:'Recovery Run', sub:'Easy · see plan', color:'run', sk:'run-rec' };
+  }
+  // Maintenance phase — keep as run-or-ride for routing
+  return { ...s, label:'Run or Ride', sub:'Recovery — your choice' };
+}
+
 // ── SESSION HELPERS ──────────────────────────────────────────────────
 // Thursday is always ride + PM gym (2x weekly ride goal)
 // Sunday is always ride + kayak stacked
@@ -1195,8 +1244,8 @@ function renderPhase(){
     <div class="stat-card"><div class="stat-val" style="font-size:12px">${deload?'⬇':ph.focus.slice(0,4)}</div><div class="stat-label">${deload?'Deload':'Focus'}</div></div>`;
 
   // Calendar
-  const colMap={run:'run',bike:'bike',paddle:'paddle',gym:'gym',double:'bike',double2:'gym',double3:'gym',double4:'gym',brick:'brick',rest:'rest','ride-and-kayak':'bike'};
-  document.getElementById('cal-grid').innerHTML=sched.map((s,i)=>{ s = getSundaySession(s, curWeek); if(i===3) s = getDoubleSession(s, curPhaseId, curWeek);
+  const colMap={run:'run',bike:'bike',paddle:'paddle',gym:'gym',double:'bike',double2:'bike',double3:'bike',double4:'bike',brick:'brick',rest:'rest','ride-and-kayak':'bike','run-or-ride':'run'};
+  document.getElementById('cal-grid').innerHTML=sched.map((s,i)=>{ s = getSundaySession(s, curWeek); if(i===3) s = getDoubleSession(s, curPhaseId, curWeek); if(i===0) s = getMondaySession(s, curPhaseId, curWeek);
     const d=days[i];
     const isToday=d.toDateString()===TODAY.toDateString();
     const done=s.type!=='rest'&&isDone(`p${ph.id}_w${curWeek}_d${i}_${s.sk}`);
@@ -1204,6 +1253,7 @@ function renderPhase(){
     let pips='';
     if(s.type==='double'||s.type==='double2'||s.type==='double3'||s.type==='double4') pips=`<div class="cal-pip bike"></div><div class="cal-pip gym"></div>`;
     else if(s.type==='ride-and-kayak') pips=`<div class="cal-pip bike"></div><div class="cal-pip paddle"></div>`;
+    else if(s.type==='run-or-ride') pips=`<div class="cal-pip run"></div><div class="cal-pip bike"></div>`;
     else if(s.type!=='rest') pips=`<div class="cal-pip ${colMap[s.color]||s.color}"></div>`;
     const click=s.type!=='rest'?`onclick="openSesh(${i})"`:' ';
     return `<div class="cal-cell${s.type==='rest'?' rest-day':''}${isToday?' today':''}${done?' done-cell':''}" ${click}>
@@ -1215,8 +1265,8 @@ function renderPhase(){
   }).join('');
 
   // List
-  const colHex={run:'var(--run)',bike:'var(--bike)',paddle:'var(--paddle)',gym:'var(--gym)',double:'var(--bike)',double2:'var(--gym)',double3:'var(--gym)',double4:'var(--gym)',brick:'var(--brick)','ride-and-kayak':'var(--bike)'};
-  document.getElementById('session-list').innerHTML=sched.map((s,i)=>{ s = getSundaySession(s, curWeek); if(i===3) s = getDoubleSession(s, curPhaseId, curWeek);
+  const colHex={run:'var(--run)',bike:'var(--bike)',paddle:'var(--paddle)',gym:'var(--gym)',double:'var(--bike)',double2:'var(--bike)',double3:'var(--bike)',double4:'var(--bike)',brick:'var(--brick)','ride-and-kayak':'var(--bike)','run-or-ride':'var(--run)'};
+  document.getElementById('session-list').innerHTML=sched.map((s,i)=>{ s = getSundaySession(s, curWeek); if(i===3) s = getDoubleSession(s, curPhaseId, curWeek); if(i===0) s = getMondaySession(s, curPhaseId, curWeek);
     if(s.type==='rest') return '';
     const d=days[i];
     const dayName=d.toLocaleDateString('en-NZ',{weekday:'long'});
@@ -1238,7 +1288,7 @@ function nextWeek(){ if(curWeek<curPhase().weeks-1){curWeek++;renderPhase();} }
 function openSesh(dayIdx){
   curDayIdx=dayIdx;
   const ph=curPhase();
-  let s=ph.schedule[dayIdx]; s = getSundaySession(s, curWeek); if(dayIdx===3) s = getDoubleSession(s, curPhaseId, curWeek);
+  let s=ph.schedule[dayIdx]; s = getSundaySession(s, curWeek); if(dayIdx===3) s = getDoubleSession(s, curPhaseId, curWeek); if(dayIdx===0) s = getMondaySession(s, curPhaseId, curWeek);
   const d=getWeekDays(curWeek)[dayIdx];
   document.getElementById('d-title').textContent=s.label;
   document.getElementById('d-sub').textContent=d.toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'short'});
@@ -1247,11 +1297,12 @@ function openSesh(dayIdx){
   let html='';
 
   if(s.type==='gym') html=buildGym('mon');
-  else if(s.type==='double')       html=buildDouble(false);
-  else if(s.type==='double2')      html=buildDouble2(false);
-  else if(s.type==='double3')      html=buildDouble3(false);
-  else if(s.type==='double4')      html=buildDouble4(false);
+  else if(s.type==='double')         html=buildDouble(false);
+  else if(s.type==='double2')        html=buildDouble2(false);
+  else if(s.type==='double3')        html=buildDouble3(false);
+  else if(s.type==='double4')        html=buildDouble4(false);
   else if(s.type==='ride-and-kayak') html=buildRideAndKayak(s);
+  else if(s.type==='run-or-ride')    html=buildRunOrRide();
   else html=buildCardio(s);
 
   const done=isDone(sk);
@@ -1435,11 +1486,12 @@ function setVar(which,idx){
   let type=s.type;
   let html='';
   if(type==='gym') html=buildGym('mon');
-  else if(type==='double')       html=buildDouble(false);
-  else if(type==='double2')      html=buildDouble2(false);
-  else if(type==='double3')      html=buildDouble3(false);
-  else if(type==='double4')      html=buildDouble4(false);
+  else if(type==='double')         html=buildDouble(false);
+  else if(type==='double2')        html=buildDouble2(false);
+  else if(type==='double3')        html=buildDouble3(false);
+  else if(type==='double4')        html=buildDouble4(false);
   else if(type==='ride-and-kayak') html=buildRideAndKayak(curPhase().schedule[curDayIdx]);
+  else if(type==='run-or-ride')    html=buildRunOrRide();
   html+=`<button class="done-btn${done?' completed':''}" id="done-btn" onclick="tapDone('${sk}')">${done?'✓ Session completed':'Mark as completed'}</button>`;
   document.getElementById('detail-content').innerHTML=html;
 }
@@ -1449,6 +1501,70 @@ function rideInfo(fields,tip){
   return `<div class="card">${fields.map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div><div class="tip-box">${tip}</div>`;
 }
 
+
+
+// ── RUN OR RIDE (Monday — Phase 3 wk9+ and all of Phase 4) ──────────
+function buildRunOrRide() {
+  const wk = curWeek;
+  const pi = curPhaseId;
+
+  // Recovery ride details per phase
+  const rideDetails = [
+    null, null,
+    // Phase 3 (maintenance)
+    { dur:'60-75 min', zone:'Zone 1-2', structure:'Easy aerobic — no efforts',
+      terrain:'Flat to rolling — Wanaka roads or cycle path',
+      benefit:'Same aerobic stimulus as the recovery run with far less joint load. Ideal choice on weeks when your legs are heavy from a big Saturday long run.',
+      tip:'If your legs feel genuinely battered after the long run, choose the bike every time. You will get the same cardio benefit with a fraction of the recovery cost.' },
+    // Phase 4 (taper)
+    { dur:'45-60 min', zone:'Zone 1-2', structure:'Easy spin — no efforts at all',
+      terrain:'Familiar flat route',
+      benefit:'Keeps blood moving through the legs without any impact. Perfect taper week option.',
+      tip:'Race week — bike is the better call here almost always. Low impact, keeps the legs feeling fresh, arrives at the start line without accumulated run fatigue.' },
+  ];
+
+  // Run details — what the recovery run looks like at this point
+  const runData = getRunSession(pi, wk, 'run-rec');
+  const ride = rideDetails[Math.min(pi, rideDetails.length-1)];
+
+  let html = '<div class="detail-hero double">';
+  html += '<div class="hero-type double">MONDAY — YOUR CHOICE</div>';
+  html += '<div class="hero-name">Run or Ride</div>';
+  html += '<div class="hero-meta">Phase '+(pi+1)+' · Week '+(wk+1)+' · maintenance phase</div>';
+  html += '<div class="hero-chips">';
+  html += '<span class="hero-chip run">option A · recovery run</span>';
+  html += '<span class="hero-chip bike">option B · easy ride</span>';
+  html += '</div></div>';
+
+  // Context note
+  html += '<div class="tip-box" style="margin-top:14px">Your marathon training is done. Both sessions deliver the same aerobic maintenance — pick based on how your body feels. Heavy legs from Saturday? Ride. Feeling good and want to run? Run. Either is correct.</div>';
+
+  // Option A — Run
+  html += '<div class="section-label" style="margin-top:4px">Option A — Recovery Run</div>';
+  if(runData) {
+    html += '<div class="card">';
+    runData.fields.forEach(f => {
+      html += '<div class="info-row"><span class="info-label">'+f.l+'</span><span class="info-val">'+f.v+'</span></div>';
+    });
+    html += '</div>';
+    if(runData.tip) html += '<div class="tip-box">'+runData.tip+'</div>';
+  }
+
+  // Option B — Ride
+  if(ride) {
+    html += '<div class="section-label">Option B — Easy Ride</div>';
+    html += '<div class="card">';
+    html += '<div class="info-row"><span class="info-label">Duration</span><span class="info-val">'+ride.dur+'</span></div>';
+    html += '<div class="info-row"><span class="info-label">Zone</span><span class="info-val">'+ride.zone+'</span></div>';
+    html += '<div class="info-row"><span class="info-label">Structure</span><span class="info-val">'+ride.structure+'</span></div>';
+    html += '<div class="info-row"><span class="info-label">Terrain</span><span class="info-val">'+ride.terrain+'</span></div>';
+    html += '<div class="info-row"><span class="info-label">Benefit</span><span class="info-val" style="font-size:11px;text-align:right;max-width:58%">'+ride.benefit+'</span></div>';
+    html += '</div>';
+    html += '<div class="tip-box">'+ride.tip+'</div>';
+  }
+
+  return html;
+}
 
 // ── RIDE + KAYAK (Sunday — every week) ───────────────────────────────
 function buildRideAndKayak(s) {
@@ -1587,17 +1703,22 @@ function buildDouble2(isPaddle){
     html += buildGym('thu');
     return html;
   }
-  let html=`<div class="detail-hero double">
-    <div class="hero-type double">AM / PM stack · Phase 2</div>
-    <div class="hero-name">Gym + Threshold Run</div>
-    <div class="hero-meta">AM gym · PM threshold run · ~120 min total</div>
-    <div class="hero-chips"><span class="hero-chip gym">AM · power gym</span><span class="hero-chip run">PM · threshold</span></div>
-  </div>
-  <div class="section-label" style="margin-top:4px">AM — Strength gym</div>`;
-  html+=buildGym('mon');
-  html+=`<div class="section-label">PM — Threshold run</div>`;
-  html+=`<div class="card">${[{l:'Duration',v:'45 min total'},{l:'Structure',v:'10 min warm-up + 2×10 min tempo + cool-down'},{l:'Tempo feel',v:'Hard but sustainable for 10 min'},{l:'Zone',v:'Zone 3–4 for efforts'}].map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div>`;
-  html+=`<div class="tip-box">The threshold run should feel hard. If the morning gym session was tough, reduce to 1×10 min tempo and keep the rest easy.</div>`;
+    let html='<div class="detail-hero double">';
+  html += '<div class="hero-type double">AM / PM stack · Phase 2</div>';
+  html += '<div class="hero-name">Ride + Gym</div>';
+  html += '<div class="hero-meta">90 min AM ride · PM gym · ~150 min total</div>';
+  html += '<div class="hero-chips"><span class="hero-chip bike">AM · build ride</span><span class="hero-chip gym">PM · power gym</span></div></div>';
+  html += '<div class="section-label" style="margin-top:4px">AM — Build Ride</div>';
+  html += '<div class="card">';
+  html += '<div class="info-row"><span class="info-label">Duration</span><span class="info-val">90 min</span></div>';
+  html += '<div class="info-row"><span class="info-label">Zone</span><span class="info-val">Zone 2–3</span></div>';
+  html += '<div class="info-row"><span class="info-label">Structure</span><span class="info-val">60 min zone 2 + 2×10 min zone 3</span></div>';
+  html += '<div class="info-row"><span class="info-label">Cadence</span><span class="info-val">80–90 rpm</span></div>';
+  html += '<div class="info-row"><span class="info-label">Terrain</span><span class="info-val">Rolling — Wanaka roads</span></div>';
+  html += '</div>';
+  html += '<div class="tip-box">Thursday ride is your midweek bike fitness session. Keep zone 2 honest and only push into zone 3 during the effort blocks. The gym follows so save something for the weights.</div>';
+  html += '<div class="section-label">PM — Gym (power + mobility + ACL)</div>';
+  html += buildGym('thu');
   return html;
 }
 function buildDouble3(isPaddle){
@@ -1615,17 +1736,22 @@ function buildDouble3(isPaddle){
     html += buildGym('thu');
     return html;
   }
-  let html=`<div class="detail-hero double">
-    <div class="hero-type double">AM / PM stack · Phase 3</div>
-    <div class="hero-name">Race Strength + Hill Reps</div>
-    <div class="hero-meta">AM gym · PM hills · ~130 min total</div>
-    <div class="hero-chips"><span class="hero-chip gym">AM · race strength</span><span class="hero-chip run">PM · hill reps</span></div>
-  </div>
-  <div class="section-label" style="margin-top:4px">AM — Race strength gym</div>`;
-  html+=buildGym('mon');
-  html+=`<div class="section-label">PM — Hill reps</div>`;
-  html+=`<div class="card">${[{l:'Duration',v:'50 min total'},{l:'Structure',v:'10 min warm-up + 6×2 min hill reps + cool-down'},{l:'Hill gradient',v:'8–12% — steep but runnable'},{l:'Recovery',v:'Walk or jog down between reps'},{l:'Effort',v:'Hard — zone 4 on the way up'}].map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div>`;
-  html+=`<div class="tip-box">Hill reps are the highest quality running stimulus in the plan. Protect them — if the morning gym leaves you too flat, drop sets rather than skip the hills.</div>`;
+    let html='<div class="detail-hero double">';
+  html += '<div class="hero-type double">AM / PM stack · Phase 3</div>';
+  html += '<div class="hero-name">Ride + Gym</div>';
+  html += '<div class="hero-meta">90 min AM ride · PM gym · ~150 min total</div>';
+  html += '<div class="hero-chips"><span class="hero-chip bike">AM · threshold ride</span><span class="hero-chip gym">PM · race strength</span></div></div>';
+  html += '<div class="section-label" style="margin-top:4px">AM — Threshold Ride</div>';
+  html += '<div class="card">';
+  html += '<div class="info-row"><span class="info-label">Duration</span><span class="info-val">90 min</span></div>';
+  html += '<div class="info-row"><span class="info-label">Zone</span><span class="info-val">Zone 2 with threshold blocks</span></div>';
+  html += '<div class="info-row"><span class="info-label">Structure</span><span class="info-val">20 min warm-up · 2×20 min threshold · 15 min cool-down</span></div>';
+  html += '<div class="info-row"><span class="info-label">Threshold feel</span><span class="info-val">Hard but sustainable for 20 min</span></div>';
+  html += '<div class="info-row"><span class="info-label">Cadence</span><span class="info-val">85–95 rpm on efforts</span></div>';
+  html += '</div>';
+  html += '<div class="tip-box">This is your most important midweek ride. The 2x20 min threshold blocks build the cycling fitness you need for a fast Otago leg. Crown Range approach is ideal terrain for this.</div>';
+  html += '<div class="section-label">PM — Gym (race strength + mobility + ACL)</div>';
+  html += buildGym('thu');
   return html;
 }
 function buildDouble4(isPaddle){
@@ -1643,21 +1769,24 @@ function buildDouble4(isPaddle){
     html += buildGym('thu');
     return html;
   }
-  let html=`<div class="detail-hero double">
-    <div class="hero-type double">AM / PM stack · Phase 4</div>
-    <div class="hero-name">Activation + Strides</div>
-    <div class="hero-meta">AM gym · PM strides · ~90 min total</div>
-    <div class="hero-chips"><span class="hero-chip gym">AM · activation</span><span class="hero-chip run">PM · strides</span></div>
-  </div>
-  <div class="section-label" style="margin-top:4px">AM — Activation gym</div>`;
-  html+=buildGym('mon');
-  html+=`<div class="section-label">PM — Easy run + strides</div>`;
-  html+=`<div class="card">${[{l:'Duration',v:'40 min total'},{l:'Structure',v:'30 min easy + 6×20 sec strides'},{l:'Stride effort',v:'Fast but relaxed — 90% max'},{l:'Recovery',v:'60 sec walk between strides'},{l:'Purpose',v:'Keep the legs sharp for race week'}].map(r=>`<div class="info-row"><span class="info-label">${r.l}</span><span class="info-val">${r.v}</span></div>`).join('')}</div>`;
-  html+=`<div class="tip-box">Strides wake the fast-twitch fibres up without creating fatigue. You should feel springy after these, not tired.</div>`;
+    let html='<div class="detail-hero double">';
+  html += '<div class="hero-type double">AM / PM stack · Phase 4</div>';
+  html += '<div class="hero-name">Ride + Gym</div>';
+  html += '<div class="hero-meta">60 min AM ride · PM gym · ~120 min total</div>';
+  html += '<div class="hero-chips"><span class="hero-chip bike">AM · taper ride</span><span class="hero-chip gym">PM · activation</span></div></div>';
+  html += '<div class="section-label" style="margin-top:4px">AM — Taper Ride</div>';
+  html += '<div class="card">';
+  html += '<div class="info-row"><span class="info-label">Duration</span><span class="info-val">60 min</span></div>';
+  html += '<div class="info-row"><span class="info-label">Zone</span><span class="info-val">Zone 1–2</span></div>';
+  html += '<div class="info-row"><span class="info-label">Structure</span><span class="info-val">Easy ride + 3×5 min race pace efforts</span></div>';
+  html += '<div class="info-row"><span class="info-label">Purpose</span><span class="info-val">Keep legs sharp without fatigue</span></div>';
+  html += '<div class="info-row"><span class="info-label">Cadence</span><span class="info-val">90+ rpm — spin easy</span></div>';
+  html += '</div>';
+  html += '<div class="tip-box">Taper ride. The short race-pace efforts keep your legs feeling sharp without building fatigue. You cannot gain fitness now — just stay sharp and fresh.</div>';
+  html += '<div class="section-label">PM — Gym (activation + mobility + ACL)</div>';
+  html += buildGym('thu');
   return html;
 }
-
-// ─── CARDIO ───
 function buildCardio(s){
   const ph=curPhase();
   const wk=curWeek;
@@ -1758,6 +1887,121 @@ window.addEventListener('load',()=>{
   link.href=c.toDataURL('image/png');
 });
 
+
+// ══════════════════════════════════════════════════════
+// DATA MANAGEMENT — export, import, stats
+// ══════════════════════════════════════════════════════
+
+function getAllStorageData() {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (key.startsWith('done_') || key.startsWith('wt_') || key === 'ibDismissed')) {
+      try { data[key] = JSON.parse(localStorage.getItem(key)); }
+      catch(e) { data[key] = localStorage.getItem(key); }
+    }
+  }
+  return data;
+}
+
+function getDataStats() {
+  const phases = getPhases();
+  let totalSessions = 0, doneSessions = 0, weightEntries = 0;
+  phases.forEach((ph, pi) => {
+    for (let wk = 0; wk < ph.weeks; wk++) {
+      ph.schedule.forEach((s, di) => {
+        if (s.type !== 'rest') {
+          totalSessions++;
+          if (isDone('p'+pi+'_w'+wk+'_d'+di+'_'+s.sk)) doneSessions++;
+        }
+      });
+    }
+  });
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('wt_')) {
+      try {
+        const val = JSON.parse(localStorage.getItem(key));
+        if (val && typeof val === 'object') weightEntries += Object.keys(val).length;
+      } catch(e) {}
+    }
+  }
+  return { totalSessions, doneSessions, weightEntries };
+}
+
+function exportData() {
+  const data = getAllStorageData();
+  const stats = getDataStats();
+  const backup = {
+    version: 'c2c-v3',
+    exported: new Date().toISOString(),
+    stats,
+    data
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href     = url;
+  a.download = 'c2c-training-backup-' + dateStr + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showDataSuccess('Backup downloaded — ' + stats.doneSessions + ' sessions and ' + stats.weightEntries + ' weight entries saved.');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.data) throw new Error('Invalid backup file — no data found.');
+      let imported = 0;
+      Object.entries(backup.data).forEach(([key, val]) => {
+        if (key.startsWith('done_') || key.startsWith('wt_') || key === 'ibDismissed') {
+          localStorage.setItem(key, JSON.stringify(val));
+          imported++;
+        }
+      });
+      renderDataStats();
+      showDataSuccess('Restored ' + imported + ' records from backup. All your sessions and weights are back.');
+    } catch(err) {
+      showDataSuccess('Could not read backup file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  // Reset input so same file can be imported again if needed
+  event.target.value = '';
+}
+
+function showDataSuccess(msg) {
+  const el = document.getElementById('data-success');
+  if (el) { el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 5000); }
+}
+
+function renderDataStats() {
+  const stats = getDataStats();
+  const pct = stats.totalSessions > 0 ? Math.round(stats.doneSessions / stats.totalSessions * 100) : 0;
+  const el = document.getElementById('data-stats');
+  if (!el) return;
+  el.innerHTML = [
+    ['Sessions completed', stats.doneSessions + ' / ' + stats.totalSessions + ' (' + pct + '%)'],
+    ['Weight entries logged', stats.weightEntries + ' sets'],
+    ['Storage used', (JSON.stringify(getAllStorageData()).length / 1024).toFixed(1) + ' KB'],
+  ].map(([l,v]) => '<div class="data-stat-row"><span class="data-stat-label">'+l+'</span><span class="data-stat-val">'+v+'</span></div>').join('');
+}
+
+function openDataScreen() {
+  renderDataStats();
+  slideIn('data', 'overview');
+}
+
+function goOverviewFromData() {
+  renderOverview();
+  slideBack('overview', 'data');
+}
+
 // ── AUTO-OPEN CURRENT PHASE & WEEK ──
 // Detects which phase and week today falls in, opens directly to it.
 // If before training start or between phases, falls back to overview.
@@ -1791,5 +2035,66 @@ function autoOpen() {
 
 autoOpen();
 </script>
+
+<!-- SCREEN: DATA MANAGEMENT -->
+<div class="screen hidden" id="screen-data">
+  <div class="nav">
+    <button class="nav-back" onclick="goOverviewFromData()">← back</button>
+    <div>
+      <div class="nav-title">Your Data</div>
+      <div class="nav-sub">backup · restore · stats</div>
+    </div>
+  </div>
+  <div class="data-screen">
+    <div id="data-success" class="data-success"></div>
+
+    <div class="data-card">
+      <div class="data-card-title">Training progress</div>
+      <div id="data-stats"></div>
+    </div>
+
+    <div class="data-card">
+      <div class="data-card-title">Backup your data</div>
+      <button class="data-btn export" onclick="exportData()">
+        <span>Download backup file</span>
+        <span class="data-btn-icon">↓ JSON</span>
+      </button>
+      <p class="data-note">Downloads a file with all your completed sessions and logged weights. Save this before updating the app or if you switch devices.</p>
+    </div>
+
+    <div class="data-card">
+      <div class="data-card-title">Restore from backup</div>
+      <button class="data-btn import" onclick="document.getElementById('import-file').click()">
+        <span>Import backup file</span>
+        <span class="data-btn-icon">↑ JSON</span>
+      </button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+      <p class="data-note">Select a previously exported backup file. Your current data will be merged — nothing will be deleted.</p>
+    </div>
+
+    <div class="data-card">
+      <div class="data-card-title">About your data</div>
+      <div class="data-stat-row">
+        <span class="data-stat-label">Storage location</span>
+        <span class="data-stat-val">This device only</span>
+      </div>
+      <div class="data-stat-row">
+        <span class="data-stat-label">Safe across app updates</span>
+        <span class="data-stat-val">Yes ✓</span>
+      </div>
+      <div class="data-stat-row">
+        <span class="data-stat-label">Safe if you clear browser data</span>
+        <span class="data-stat-val">No — backup first</span>
+      </div>
+      <div class="data-stat-row">
+        <span class="data-stat-label">Safe if you change URL/domain</span>
+        <span class="data-stat-val">No — backup first</span>
+      </div>
+    </div>
+
+    <div class="pb"></div>
+  </div>
+</div>
+
 </body>
 </html>
