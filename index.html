@@ -181,6 +181,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 /* WEIGHT */
 .weight-btn{font-family:'DM Mono',monospace;font-size:9px;padding:4px 9px;border-radius:3px;border:1px solid var(--border2);background:var(--bg4);color:var(--text3);cursor:pointer;white-space:nowrap}
 .weight-btn.has-data{border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim)}
+.weight-btn.carried{border-color:rgba(90,159,212,0.35);color:var(--bike);background:rgba(90,159,212,0.08)}
 .weight-btn:active{opacity:0.6}
 .weight-panel{display:none;background:var(--bg2);border-top:1px solid var(--border);padding:12px 14px}
 .weight-panel.open{display:block}
@@ -350,6 +351,25 @@ function isDone(k){return load('done_'+k,false)}
 function toggleDone(k){store('done_'+k,!isDone(k))}
 function getWts(id,ph,wk){return load('wt_'+id+'_p'+ph+'_w'+wk,{})}
 function setWts(id,ph,wk,data){store('wt_'+id+'_p'+ph+'_w'+wk,data)}
+
+// Returns weights for this week — if none logged yet, carries forward
+// from the most recent logged week (same exercise, any prior week/phase)
+function getWtsWithCarryOver(id,ph,wk){
+  const current = getWts(id,ph,wk);
+  if(Object.keys(current).length > 0) return {data:current, carried:false};
+  // Look back through this phase first, then previous phases
+  for(let w=wk-1; w>=0; w--){
+    const d=getWts(id,ph,w);
+    if(Object.keys(d).length>0) return {data:d, carried:true};
+  }
+  for(let p=ph-1; p>=0; p--){
+    for(let w=15; w>=0; w--){
+      const d=getWts(id,p,w);
+      if(Object.keys(d).length>0) return {data:d, carried:true};
+    }
+  }
+  return {data:{}, carried:false};
+}
 
 // ═══════════════════════════════════════════════════════════════
 // PHASE DEFINITIONS
@@ -605,7 +625,8 @@ function buildP1GymMon(){return{vars:[
       {id:'p1ma-fc',tag:'carry',name:"Farmer's carry",note:'Heavy DBs, tall posture, 40m',sets:'3×40m',n:3,w:true},
     ]},
     {t:'ACL prehab',time:'10 min',acl:true,ex:[
-      {id:'p1ma-tle',tag:'knee',name:'Terminal leg extension',note:'Last 30° only — feel VMO fire',sets:'3×15',n:3},
+      {id:'p1ma-tle',tag:'knee',name:'Weighted single leg extension',note:'Seated machine or cable. Last 30° of extension only. Full VMO contraction at top.',sets:'3×15',n:3,w:true},
+        {id:'p1ma-phc',tag:'knee',name:'Prone hamstring curl',note:'Prone on bench or machine. Full range, 2 sec hold at top. Hamstring loaded through full ROM.',sets:'3×12',n:3,w:true},
       {id:'p1ma-sqs',tag:'knee',name:'Spanish squat hold',note:'Band on post, vertical shin',sets:'3×30s',n:3},
       {id:'p1ma-db',tag:'core',name:'Dead bug',note:'Lower back flat to floor',sets:'3×8/side',n:3},
     ]},
@@ -643,7 +664,8 @@ function buildP1GymMon(){return{vars:[
       {id:'p1mc-ohc',tag:'carry',name:'Overhead carry',note:'One DB pressed overhead, 30m/side',sets:'3×30m/side',n:3,w:true},
     ]},
     {t:'ACL prehab',time:'10 min',acl:true,ex:[
-      {id:'p1mc-tle',tag:'knee',name:'Terminal leg extension',note:'Light band at ankle, last 30° only',sets:'3×15',n:3},
+      {id:'p1mc-tle',tag:'knee',name:'Weighted single leg extension',note:'Seated machine or cable. Last 30° of extension only. Full VMO contraction at top.',sets:'3×15',n:3,w:true},
+        {id:'p1mc-phc',tag:'knee',name:'Prone hamstring curl',note:'Prone on bench or machine. Full range, 2 sec hold at top. Hamstring loaded through full ROM.',sets:'3×12',n:3,w:true},
       {id:'p1mc-wsvmo',tag:'knee',name:'Wall sit + VMO squeeze',note:'Ball between knees, squeeze gently',sets:'3×45s',n:3},
       {id:'p1mc-pp',tag:'core',name:'Pallof press',note:'Side-on to cable, press + hold 2 sec',sets:'3×10/side',n:3},
     ]},
@@ -665,7 +687,8 @@ function buildP1GymThu(){return{vars:[
       {id:'p1ta-pu',tag:'push',name:'Push-up',note:'Body rigid as a plank. Feet elevated if easy.',sets:'3×12',n:3},
     ]},
     {t:'ACL prehab',time:'12 min',acl:true,ex:[
-      {id:'p1ta-tle',tag:'knee',name:'Terminal leg extension',note:'Band or cable, last 30°, light',sets:'3×15',n:3},
+      {id:'p1ta-tle',tag:'knee',name:'Weighted single leg extension',note:'Seated machine or cable. Last 30° of extension only. Full VMO contraction at top.',sets:'3×15',n:3,w:true},
+        {id:'p1ta-phc',tag:'knee',name:'Prone hamstring curl',note:'Prone on bench or machine. Full range, 2 sec hold at top. Hamstring loaded through full ROM.',sets:'3×12',n:3,w:true},
       {id:'p1ta-nc',tag:'knee',name:'Nordic curl',note:'Most important ACL prevention exercise. Slow eccentric.',sets:'3×6',n:3},
       {id:'p1ta-cop',tag:'core',name:'Copenhagen plank',note:'Adductor + lateral core',sets:'3×20s/side',n:3},
       {id:'p1ta-pp',tag:'core',name:'Pallof press',note:'Anti-rotation, press + hold 2 sec',sets:'3×10/side',n:3},
@@ -727,7 +750,8 @@ function buildP2GymMon(){return{vars:[
       {id:'p2ma-fc',tag:'carry',name:'Heavy farmer carry',note:'Heavier than Phase 1, 50m',sets:'4×50m',n:4,w:true},
     ]},
     {t:'ACL prehab',time:'10 min',acl:true,ex:[
-      {id:'p2ma-tle',tag:'knee',name:'Terminal leg extension',note:'Last 30° only. Slightly heavier than Phase 1.',sets:'3×15',n:3},
+      {id:'p2ma-tle',tag:'knee',name:'Weighted single leg extension',note:'Weighted — add load from Phase 1. Last 30° only, slow and controlled.',sets:'3×15',n:3,w:true},
+        {id:'p2ma-phc',tag:'knee',name:'Prone hamstring curl',note:'Add load. Controlled eccentric — 3 sec down. Key hamstring strength for trail running.',sets:'3×12',n:3,w:true},
       {id:'p2ma-nc',tag:'knee',name:'Nordic curl',note:'4–5 sec eccentric — never rush this',sets:'3×6–8',n:3},
       {id:'p2ma-cop',tag:'core',name:'Copenhagen plank',note:'Longer holds — 30 sec per side',sets:'3×30s/side',n:3},
     ]},
@@ -765,7 +789,8 @@ function buildP2GymMon(){return{vars:[
       {id:'p2mc-ohc',tag:'carry',name:'Overhead carry',note:'One arm pressed overhead, 35m per side',sets:'3×35m/side',n:3,w:true},
     ]},
     {t:'ACL prehab',time:'10 min',acl:true,ex:[
-      {id:'p2mc-tle',tag:'knee',name:'Terminal leg extension',note:'Last 30° only. VMO activation.',sets:'3×15',n:3},
+      {id:'p2mc-tle',tag:'knee',name:'Weighted single leg extension',note:'Weighted — add load from Phase 1. Last 30° only, slow and controlled.',sets:'3×15',n:3,w:true},
+        {id:'p2mc-phc',tag:'knee',name:'Prone hamstring curl',note:'Add load. Controlled eccentric — 3 sec down. Key hamstring strength for trail running.',sets:'3×12',n:3,w:true},
       {id:'p2mc-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric. Non-negotiable.',sets:'3×8',n:3},
       {id:'p2mc-lj',tag:'knee',name:'Single-leg landing drill',note:'Drop from box, land and hold 2 sec. Control the knee.',sets:'3×8/side',n:3},
     ]},
@@ -787,7 +812,8 @@ function buildP2GymThu(){return{vars:[
       {id:'p2ta-pu',tag:'push',name:'Decline push-up',note:'Feet elevated — targets upper chest + shoulders',sets:'3×12',n:3},
     ]},
     {t:'ACL prehab',time:'12 min',acl:true,ex:[
-      {id:'p2ta-tle',tag:'knee',name:'Terminal leg extension',note:'Heavier band or cable',sets:'3×15',n:3},
+      {id:'p2ta-tle',tag:'knee',name:'Weighted single leg extension',note:'Weighted — add load from Phase 1. Last 30° only, slow and controlled.',sets:'3×15',n:3,w:true},
+        {id:'p2ta-phc',tag:'knee',name:'Prone hamstring curl',note:'Add load. Controlled eccentric — 3 sec down. Key hamstring strength for trail running.',sets:'3×12',n:3,w:true},
       {id:'p2ta-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric. Add reps from Phase 1.',sets:'3×8',n:3},
       {id:'p2ta-cop',tag:'core',name:'Copenhagen plank',note:'35 sec per side',sets:'3×35s/side',n:3},
       {id:'p2ta-pp',tag:'core',name:'Pallof press',note:'Heavier, longer hold',sets:'3×12/side',n:3},
@@ -849,7 +875,8 @@ function buildP3GymMon(){return{vars:[
       {id:'p3ma-fc',tag:'carry',name:'Heavy farmer carry',note:'Race-weight simulation — 60m',sets:'4×60m',n:4,w:true},
     ]},
     {t:'ACL prehab',time:'10 min',acl:true,ex:[
-      {id:'p3ma-tle',tag:'knee',name:'Terminal leg extension',note:'Heavier band. Last 30° only.',sets:'3×15',n:3},
+      {id:'p3ma-tle',tag:'knee',name:'Weighted single leg extension',note:'Heavy. Last 30° of extension. Isometric hold 2 sec at top.',sets:'3×15',n:3,w:true},
+        {id:'p3ma-phc',tag:'knee',name:'Prone hamstring curl',note:'Heavy. Slow eccentric. This protects your hamstrings on the Goat Pass descent.',sets:'3×10',n:3,w:true},
       {id:'p3ma-nc',tag:'knee',name:'Nordic curl',note:'Eccentric always slow — never compromise',sets:'3×8–10',n:3},
       {id:'p3ma-lj',tag:'knee',name:'Single-leg landing drill',note:'Drop and hold — knee must track over toes',sets:'3×10/side',n:3},
     ]},
@@ -887,7 +914,8 @@ function buildP3GymMon(){return{vars:[
       {id:'p3mc-suit',tag:'carry',name:'Suitcase + overhead carry combo',note:'40m suitcase then press overhead, return',sets:'3 rounds/side',n:3,w:true},
     ]},
     {t:'ACL prehab',time:'10 min',acl:true,ex:[
-      {id:'p3mc-tle',tag:'knee',name:'Terminal leg extension',note:'Last 30° only. Heavy.',sets:'3×15',n:3},
+      {id:'p3mc-tle',tag:'knee',name:'Weighted single leg extension',note:'Heavy. Last 30° of extension. Isometric hold 2 sec at top.',sets:'3×15',n:3,w:true},
+        {id:'p3mc-phc',tag:'knee',name:'Prone hamstring curl',note:'Heavy. Slow eccentric. This protects your hamstrings on the Goat Pass descent.',sets:'3×10',n:3,w:true},
       {id:'p3mc-nc',tag:'knee',name:'Nordic curl',note:'Non-negotiable slow eccentric',sets:'3×10',n:3},
       {id:'p3mc-wsvmo',tag:'knee',name:'Wall sit + VMO pulse',note:'Hold 45s, pulse quad for last 15s',sets:'3×45s',n:3},
     ]},
@@ -909,7 +937,8 @@ function buildP3GymThu(){return{vars:[
       {id:'p3ta-lmp',tag:'push',name:'Landmine press',note:'Heaviest yet. Paddle mechanics.',sets:'3×10/side',n:3,w:true},
     ]},
     {t:'ACL prehab',time:'12 min',acl:true,ex:[
-      {id:'p3ta-tle',tag:'knee',name:'Terminal leg extension',note:'Heavy band or cable',sets:'3×15',n:3},
+      {id:'p3ta-tle',tag:'knee',name:'Weighted single leg extension',note:'Heavy. Last 30° of extension. Isometric hold 2 sec at top.',sets:'3×15',n:3,w:true},
+        {id:'p3ta-phc',tag:'knee',name:'Prone hamstring curl',note:'Heavy. Slow eccentric. This protects your hamstrings on the Goat Pass descent.',sets:'3×10',n:3,w:true},
       {id:'p3ta-nc',tag:'knee',name:'Nordic curl',note:'Add reps — aim for 10 this phase',sets:'3×10',n:3},
       {id:'p3ta-cop',tag:'core',name:'Copenhagen plank',note:'40 sec per side',sets:'3×40s/side',n:3},
       {id:'p3ta-pp',tag:'core',name:'Pallof press',note:'Heaviest of the plan',sets:'3×12/side',n:3},
@@ -971,7 +1000,8 @@ function buildP4GymMon(){return{vars:[
       {id:'p4ma-fc',tag:'carry',name:"Farmer's carry",note:'Moderate weight, 40m. Feel strong.',sets:'2×40m',n:2,w:true},
     ]},
     {t:'ACL prehab',time:'12 min',acl:true,ex:[
-      {id:'p4ma-tle',tag:'knee',name:'Terminal leg extension',note:'Light. Activation only.',sets:'2×15',n:2},
+      {id:'p4ma-tle',tag:'knee',name:'Weighted single leg extension',note:'Light activation. Last 30° only. Feel the VMO.',sets:'2×15',n:2,w:true},
+        {id:'p4ma-phc',tag:'knee',name:'Prone hamstring curl',note:'Light to moderate. Maintain hamstring strength into race week.',sets:'2×12',n:2,w:true},
       {id:'p4ma-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric — maintain the habit',sets:'2×8',n:2},
       {id:'p4ma-cop',tag:'core',name:'Copenhagen plank',note:'30 sec per side',sets:'2×30s/side',n:2},
     ]},
@@ -1009,7 +1039,8 @@ function buildP4GymMon(){return{vars:[
       {id:'p4mc-suit',tag:'carry',name:'Suitcase carry',note:'Light. Core activation.',sets:'2×30m/side',n:2,w:true},
     ]},
     {t:'ACL prehab',time:'12 min',acl:true,ex:[
-      {id:'p4mc-tle',tag:'knee',name:'Terminal leg extension',note:'Light. Last 30°.',sets:'2×15',n:2},
+      {id:'p4mc-tle',tag:'knee',name:'Weighted single leg extension',note:'Light activation. Last 30° only. Feel the VMO.',sets:'2×15',n:2,w:true},
+        {id:'p4mc-phc',tag:'knee',name:'Prone hamstring curl',note:'Light to moderate. Maintain hamstring strength into race week.',sets:'2×12',n:2,w:true},
       {id:'p4mc-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric. Maintain the gains.',sets:'2×8',n:2},
       {id:'p4mc-wsvmo',tag:'knee',name:'Wall sit + VMO squeeze',note:'30 sec. Calm and controlled.',sets:'2×30s',n:2},
     ]},
@@ -1031,7 +1062,8 @@ function buildP4GymThu(){return{vars:[
       {id:'p4ta-pu',tag:'push',name:'Push-up',note:'Easy. Controlled.',sets:'2×12',n:2},
     ]},
     {t:'ACL prehab',time:'14 min',acl:true,ex:[
-      {id:'p4ta-tle',tag:'knee',name:'Terminal leg extension',note:'Light. Activation.',sets:'2×15',n:2},
+      {id:'p4ta-tle',tag:'knee',name:'Weighted single leg extension',note:'Light activation. Last 30° only. Feel the VMO.',sets:'2×15',n:2,w:true},
+        {id:'p4ta-phc',tag:'knee',name:'Prone hamstring curl',note:'Light to moderate. Maintain hamstring strength into race week.',sets:'2×12',n:2,w:true},
       {id:'p4ta-nc',tag:'knee',name:'Nordic curl',note:'Slow eccentric. Always.',sets:'2×8',n:2},
       {id:'p4ta-cop',tag:'core',name:'Copenhagen plank',note:'25 sec per side',sets:'2×25s/side',n:2},
       {id:'p4ta-pp',tag:'core',name:'Pallof press',note:'Light band. Anti-rotation maintenance.',sets:'2×10/side',n:2},
@@ -1069,7 +1101,8 @@ function buildP4GymThu(){return{vars:[
       {id:'p4tc-pu',tag:'push',name:'Push-up',note:'Controlled. Easy.',sets:'2×12',n:2},
     ]},
     {t:'ACL prehab',time:'14 min',acl:true,ex:[
-      {id:'p4tc-tle',tag:'knee',name:'Terminal leg extension',note:'Light. VMO activation.',sets:'2×15',n:2},
+      {id:'p4tc-tle',tag:'knee',name:'Weighted single leg extension',note:'Light activation. Last 30° only. Feel the VMO.',sets:'2×15',n:2,w:true},
+        {id:'p4tc-phc',tag:'knee',name:'Prone hamstring curl',note:'Light to moderate. Maintain hamstring strength into race week.',sets:'2×12',n:2,w:true},
       {id:'p4tc-nc',tag:'knee',name:'Nordic curl',note:'One last slow eccentric session before race day.',sets:'2×8',n:2},
       {id:'p4tc-ss',tag:'knee',name:'Spanish squat hold',note:'30 sec. Feel strong.',sets:'2×30s',n:2},
       {id:'p4tc-cop',tag:'core',name:'Copenhagen plank',note:'25 sec. Calm.',sets:'2×25s/side',n:2},
@@ -1425,21 +1458,23 @@ function buildGym(which){
     block.ex.forEach(ex=>{
       const tag=ex.tag?`<span class="tag-pill t-${ex.tag}">${ex.tag}</span>`:'';
       const wkey=`${ex.id}_p${curPhaseId}_w${wk}`;
-      const weights=ex.w?getWts(ex.id,curPhaseId,wk):{};
-      const hasData=ex.w&&Object.keys(weights).length>0;
+      const wtResult=ex.w?getWtsWithCarryOver(ex.id,curPhaseId,wk):{data:{},carried:false};
+      const weights=wtResult.data;
+      const carried=wtResult.carried;
+      const hasData=ex.w&&Object.keys(getWts(ex.id,curPhaseId,wk)).length>0;
       let wBtn='', panel='';
       if(ex.w&&ex.n>0){
-        wBtn=`<button class="weight-btn${hasData?' has-data':''}" onclick="togglePanel('${wkey}',event)">${hasData?'⚖ logged':'+ weight'}</button>`;
+        wBtn=`<button class="weight-btn${hasData?' has-data':carried?' carried':''}" onclick="togglePanel('${wkey}',event)">${hasData?'⚖ logged':carried?'↑ carried':'+ weight'}</button>`;
         const rows=Array.from({length:ex.n},(_,si)=>`
           <div class="set-row">
             <span class="set-num">S${si+1}</span>
-            <input class="set-input" type="number" inputmode="decimal" placeholder="kg" value="${weights['k'+si]||''}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'k${si}',this.value)">
+            <input class="set-input" type="number" inputmode="decimal" placeholder="${carried&&weights['k'+si]?weights['k'+si]+' kg (prev)':'kg'}" value="${hasData?weights['k'+si]||'':''}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'k${si}',this.value)">
             <span class="set-unit">kg</span>
-            <input class="set-input" type="number" inputmode="numeric" placeholder="reps" value="${weights['r'+si]||''}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'r${si}',this.value)">
+            <input class="set-input" type="number" inputmode="numeric" placeholder="${carried&&weights['r'+si]?weights['r'+si]+' reps (prev)':'reps'}" value="${hasData?weights['r'+si]||'':''}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'r${si}',this.value)">
             <span class="set-unit">reps</span>
           </div>`).join('');
         panel=`<div class="weight-panel" id="wp-${wkey}">
-          <div class="wp-title">Log weights — Phase ${curPhaseId+1} Week ${wk+1}</div>
+          <div class="wp-title">Log weights — Week ${wk+1}${carried?' · prev weights shown as placeholders':''}</div>
           <div class="set-rows">${rows}</div>
           <button class="save-btn" onclick="closePanel('${wkey}','${ex.id}',${curPhaseId},${wk})">Save ✓</button>
         </div>`;
