@@ -1551,21 +1551,13 @@ function buildGym(which){
       </div>${panel}</div>`;
     });
     html+=`</div>`;
-    // Inject mobility block after main lifts (blockIdx 1), before ACL prehab
-    if(blockIdx === 1){
-      html += '<div class="card"><div class="card-header"><div class="card-title">'+mobBlock.title+'</div><div class="card-badge">'+mobBlock.time+'</div></div>';
-      mobBlock.exs.forEach(ex=>{
-        html += '<div class="ex-row"><div class="ex-left"><span class="ex-name">'+ex.name+'</span><div class="ex-note">'+ex.note+'</div></div><div class="ex-right"><span class="ex-sets">'+ex.sets+'</span></div></div>';
-      });
-      html += '</div>';
-    }
   });
 
-  // ── APPEND MOBILITY after main lifts, ACL stays last ──────────────
-  // (mobility block is injected inside the block loop below — see v.blocks.forEach)
-  // Plyos go at the very end as a power finisher
+  // ── ORDER: warm-up → main lifts → ACL prehab → jump training → mobility
+  // ACL prehab is block index 2 (inside forEach above)
+  // Jump training and mobility appended here in correct order
 
-  // ── PLYOMETRICS BLOCK (Monday only, final finisher) ────────────────
+  // ── JUMP TRAINING (Monday only) ─────────────────────────────────────
   if(which==='mon'){
     html += '<div class="card" style="border-color:rgba(224,120,85,0.4);background:var(--brick-bg)">';
     html += '<div class="card-header"><div class="card-title" style="color:var(--brick)">'+plyoBlock.title+'</div><div class="card-badge" style="color:var(--brick);border-color:rgba(224,120,85,0.3);background:rgba(224,120,85,0.08)">'+plyoBlock.time+'</div></div>';
@@ -1575,6 +1567,13 @@ function buildGym(which){
     html += '<div class="ex-row" style="border-bottom:none"><div class="ex-note" style="color:rgba(224,120,85,0.7)">Phase note: '+phaseProgression+'</div></div>';
     html += '</div>';
   }
+
+  // ── MOBILITY (all sessions, always last) ─────────────────────────────
+  html += '<div class="card"><div class="card-header"><div class="card-title">'+mobBlock.title+'</div><div class="card-badge">'+mobBlock.time+'</div></div>';
+  mobBlock.exs.forEach(ex=>{
+    html += '<div class="ex-row"><div class="ex-left"><span class="ex-name">'+ex.name+'</span><div class="ex-note">'+ex.note+'</div></div><div class="ex-right"><span class="ex-sets">'+ex.sets+'</span></div></div>';
+  });
+  html += '</div>';
 
   return html;
 }
