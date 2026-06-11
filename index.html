@@ -176,6 +176,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .t-power{background:#1f150d;color:#e07855}
 .ex-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
 .ex-note{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.4}
+.ex-prev-wt{font-family:'DM Mono',monospace;font-size:10px;color:var(--bike);margin-top:3px;opacity:0.85}
 .ex-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
 .ex-sets{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);white-space:nowrap}
 .acl-card .ex-sets{color:var(--acl)}
@@ -187,11 +188,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .weight-btn:active{opacity:0.6}
 .weight-panel{display:none;background:var(--bg2);border-top:1px solid var(--border);padding:12px 14px}
 .weight-panel.open{display:block}
-.wp-title{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px}
+.wp-title{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
+.wp-prev{font-family:'DM Mono',monospace;font-size:11px;background:rgba(90,159,212,0.08);border:1px solid rgba(90,159,212,0.2);border-radius:4px;padding:7px 10px;margin-bottom:10px;display:flex;flex-direction:column;gap:3px}
+.wp-prev-label{font-size:9px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase}
+.wp-prev-sets{color:var(--bike);font-size:12px;line-height:1.5}
+.carried-row{}
+.carried-input{border-color:rgba(90,159,212,0.4);color:var(--bike)}
+.carried-input:focus{border-color:var(--accent-border);color:var(--text)}
 .set-rows{display:flex;flex-direction:column;gap:8px}
 .set-row{display:flex;align-items:center;gap:8px}
 .set-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);width:26px;flex-shrink:0}
 .set-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:8px 6px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none}
+.set-input::placeholder{color:var(--text3);opacity:1}
+/* Always-visible inline weight inputs */
+.wt-rows{padding:4px 14px 8px;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border)}
+.wt-row{display:flex;align-items:center;gap:7px}
+.wt-input{width:62px;background:transparent;border:none;border-bottom:1px solid var(--border2);padding:3px 4px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none;border-radius:0}
+.wt-input:focus{border-bottom-color:var(--accent);background:rgba(232,255,71,0.04)}
+.wt-input::placeholder{color:var(--text3);opacity:1;font-size:12px}
+.wt-unit{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.04em;width:24px}
+.acl-card .wt-rows{border-top-color:var(--acl-border)}
 .set-input:focus{border-color:var(--accent-border)}
 .set-input::placeholder{color:var(--text3);font-size:11px}
 .set-unit{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);width:28px;flex-shrink:0}
@@ -356,21 +372,52 @@ function setWts(id,ph,wk,data){store('wt_'+id+'_p'+ph+'_w'+wk,data)}
 
 // Returns weights for this week — if none logged yet, carries forward
 // from the most recent logged week (same exercise, any prior week/phase)
-function getWtsWithCarryOver(id,ph,wk){
-  const current = getWts(id,ph,wk);
-  if(Object.keys(current).length > 0) return {data:current, carried:false};
-  // Look back through this phase first, then previous phases
-  for(let w=wk-1; w>=0; w--){
-    const d=getWts(id,ph,w);
-    if(Object.keys(d).length>0) return {data:d, carried:true};
+function getWtsWithCarryOver(id, ph, wk) {
+  // 1. Current week has data — return it, no carry needed
+  const current = getWts(id, ph, wk);
+  if (Object.keys(current).length > 0) return { data: current, carried: false };
+
+  // 2. Same exercise ID, earlier weeks in this phase
+  for (let w = wk - 1; w >= 0; w--) {
+    const d = getWts(id, ph, w);
+    if (Object.keys(d).length > 0) return { data: d, carried: true };
   }
-  for(let p=ph-1; p>=0; p--){
-    for(let w=15; w>=0; w--){
-      const d=getWts(id,p,w);
-      if(Object.keys(d).length>0) return {data:d, carried:true};
+
+  // 3. Earlier phases, same exercise ID
+  for (let p = ph - 1; p >= 0; p--) {
+    for (let w = 16; w >= 0; w--) {
+      const d = getWts(id, p, w);
+      if (Object.keys(d).length > 0) return { data: d, carried: true };
     }
   }
-  return {data:{}, carried:false};
+
+  // 4. Cross-phase by exercise suffix — IDs like 'p1ma-rdl' and 'p2ma-rdl'
+  // share the suffix 'rdl'. Key format is 'wt_p1ma-rdl_p0_w3'
+  // so we search for '-' + suffix + '_p' (hyphen before suffix, not underscore)
+  const suffix = id.includes('-') ? id.split('-').slice(-1)[0] : id;
+  const hyphenPattern = '-' + suffix + '_p';  // matches '-rdl_p' in key
+  let bestData = null, bestTs = -1;
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith('wt_')) continue;
+    if (!k.includes(hyphenPattern)) continue;
+    const m = k.match(/_p(\d+)_w(\d+)$/);
+    if (!m) continue;
+    const kPh = parseInt(m[1]), kWk = parseInt(m[2]);
+    // Only carry from earlier
+    if (kPh > ph || (kPh === ph && kWk >= wk)) continue;
+    const ts = kPh * 100 + kWk;
+    if (ts > bestTs) {
+      try {
+        const d = JSON.parse(localStorage.getItem(k));
+        if (d && Object.keys(d).length > 0) { bestData = d; bestTs = ts; }
+      } catch(e) {}
+    }
+  }
+  if (bestData) return { data: bestData, carried: true };
+
+  return { data: {}, carried: false };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1524,31 +1571,38 @@ function buildGym(which){
     block.ex.forEach(ex=>{
       const tag=ex.tag?`<span class="tag-pill t-${ex.tag}">${ex.tag}</span>`:'';
       const wkey=`${ex.id}_p${curPhaseId}_w${wk}`;
-      const wtResult=ex.w?getWtsWithCarryOver(ex.id,curPhaseId,wk):{data:{},carried:false};
-      const weights=wtResult.data;
-      const carried=wtResult.carried;
-      const hasData=ex.w&&Object.keys(getWts(ex.id,curPhaseId,wk)).length>0;
-      let wBtn='', panel='';
-      if(ex.w&&ex.n>0){
-        wBtn=`<button class="weight-btn${hasData?' has-data':carried?' carried':''}" onclick="togglePanel('${wkey}',event)">${hasData?'⚖ logged':carried?'↑ carried':'+ weight'}</button>`;
-        const rows=Array.from({length:ex.n},(_,si)=>`
-          <div class="set-row">
+      // Weights: always-visible inline inputs. No button, no panel.
+      // Faded (placeholder) = previous week's weight. Solid white = this week's entry.
+      let weightRows = '';
+      if (ex.w && ex.n > 0) {
+        const wtResult = getWtsWithCarryOver(ex.id, curPhaseId, wk);
+        const prevWts  = wtResult.data;
+        const thisWts  = getWts(ex.id, curPhaseId, wk);
+        weightRows = Array.from({length: ex.n}, (_, si) => {
+          const thisK = thisWts['k'+si] || '';
+          const thisR = thisWts['r'+si] || '';
+          const prevK = prevWts['k'+si] || '';
+          const prevR = prevWts['r'+si] || '';
+          return `<div class="wt-row">
             <span class="set-num">S${si+1}</span>
-            <input class="set-input" type="number" inputmode="decimal" placeholder="${carried&&weights['k'+si]?weights['k'+si]+' kg (prev)':'kg'}" value="${hasData?weights['k'+si]||'':''}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'k${si}',this.value)">
-            <span class="set-unit">kg</span>
-            <input class="set-input" type="number" inputmode="numeric" placeholder="${carried&&weights['r'+si]?weights['r'+si]+' reps (prev)':'reps'}" value="${hasData?weights['r'+si]||'':''}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'r${si}',this.value)">
-            <span class="set-unit">reps</span>
-          </div>`).join('');
-        panel=`<div class="weight-panel" id="wp-${wkey}">
-          <div class="wp-title">Log weights — Week ${wk+1}${carried?' · prev weights shown as placeholders':''}</div>
-          <div class="set-rows">${rows}</div>
-          <button class="save-btn" onclick="closePanel('${wkey}','${ex.id}',${curPhaseId},${wk})">Save ✓</button>
-        </div>`;
+            <input class="wt-input" type="number" inputmode="decimal" placeholder="${prevK||'—'}" value="${thisK}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'k${si}',this.value)">
+            <span class="wt-unit">kg</span>
+            <input class="wt-input" type="number" inputmode="numeric" placeholder="${prevR||'—'}" value="${thisR}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'r${si}',this.value)">
+            <span class="wt-unit">reps</span>
+          </div>`;
+        }).join('');
       }
-      html+=`<div><div class="ex-row">
-        <div class="ex-left">${tag}<span class="ex-name">${ex.name}</span>${ex.note?`<div class="ex-note">${ex.note}</div>`:''}</div>
-        <div class="ex-right"><span class="ex-sets">${ex.sets}</span>${wBtn}</div>
-      </div>${panel}</div>`;
+      const wBtn = '';
+      const panel = '';
+      const inlineWt = '';
+
+      html+=`<div>
+        <div class="ex-row">
+          <div class="ex-left">${tag}<span class="ex-name">${ex.name}</span>${ex.note?`<div class="ex-note">${ex.note}</div>`:''}</div>
+          <div class="ex-right"><span class="ex-sets">${ex.sets}</span></div>
+        </div>
+        ${weightRows ? `<div class="wt-rows">${weightRows}</div>` : ''}
+      </div>`;
     });
     html+=`</div>`;
   });
@@ -1957,14 +2011,35 @@ function togglePanel(wkey,e){
   document.querySelectorAll('.weight-panel.open').forEach(x=>x.classList.remove('open'));
   if(!open) p.classList.add('open');
 }
-function closePanel(wkey,exId,ph,wk){
-  const p=document.getElementById('wp-'+wkey);
-  if(p) p.classList.remove('open');
-  const w=getWts(exId,ph,wk);
-  const has=Object.keys(w).length>0;
-  document.querySelectorAll('.weight-btn').forEach(btn=>{
-    const oc=btn.getAttribute('onclick')||'';
-    if(oc.includes(`'${wkey}'`)){btn.classList.toggle('has-data',has);btn.textContent=has?'⚖ logged':'+ weight';}
+function closePanel(wkey, exId, ph, wk) {
+  const p = document.getElementById('wp-'+wkey);
+  if (p) p.classList.remove('open');
+  refreshWeightBtn(wkey, exId, ph, wk);
+}
+
+function saveAllAndClose(wkey, exId, ph, wk, numSets) {
+  // Read all input values and save — catches values that weren't changed (no onchange fired)
+  for (let si = 0; si < numSets; si++) {
+    const kEl = document.getElementById('inp-'+wkey+'-k'+si);
+    const rEl = document.getElementById('inp-'+wkey+'-r'+si);
+    if (kEl && kEl.value !== '') saveWt(exId, ph, wk, 'k'+si, kEl.value);
+    if (rEl && rEl.value !== '') saveWt(exId, ph, wk, 'r'+si, rEl.value);
+  }
+  closePanel(wkey, exId, ph, wk);
+}
+
+function refreshWeightBtn(wkey, exId, ph, wk) {
+  const w = getWts(exId, ph, wk);
+  const hasData = Object.keys(w).length > 0;
+  const {carried} = hasData ? {carried:false} : getWtsWithCarryOver(exId, ph, wk);
+  const btnLabel = hasData ? '⚖ logged' : carried ? '↑ prev wt' : '+ weight';
+  const btnClass = hasData ? 'has-data' : carried ? 'carried' : '';
+  document.querySelectorAll('.weight-btn').forEach(btn => {
+    const oc = btn.getAttribute('onclick') || '';
+    if (oc.includes("'"+wkey+"'")) {
+      btn.className = 'weight-btn' + (btnClass ? ' '+btnClass : '');
+      btn.textContent = btnLabel;
+    }
   });
 }
 function saveWt(exId,ph,wk,field,val){
