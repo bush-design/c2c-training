@@ -200,14 +200,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .set-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);width:26px;flex-shrink:0}
 .set-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:8px 6px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none}
 .set-input::placeholder{color:var(--text3);opacity:1}
-/* Always-visible inline weight inputs */
-.wt-rows{padding:4px 14px 8px;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border)}
+/* Collapsible weight block */
+.wt-block{border-top:1px solid var(--border)}
+.acl-card .wt-block{border-top-color:var(--acl-border)}
+.wt-summary{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;cursor:pointer;gap:8px}
+.wt-summary:active{opacity:0.7}
+.wt-summary-text{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);flex:1}
+.wt-summary.faded .wt-summary-text{color:var(--text3)}
+.wt-summary-chevron{font-family:'DM Mono',monospace;font-size:14px;color:var(--text3);flex-shrink:0;transition:transform 0.15s}
+.wt-detail{padding:4px 14px 10px;display:flex;flex-direction:column;gap:6px;background:var(--bg2)}
 .wt-row{display:flex;align-items:center;gap:7px}
-.wt-input{width:62px;background:transparent;border:none;border-bottom:1px solid var(--border2);padding:3px 4px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none;border-radius:0}
-.wt-input:focus{border-bottom-color:var(--accent);background:rgba(232,255,71,0.04)}
-.wt-input::placeholder{color:var(--text3);opacity:1;font-size:12px}
+.wt-input{width:62px;background:transparent;border:none;border-bottom:1px solid var(--border2);padding:4px 4px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none;border-radius:0}
+.wt-input:focus{border-bottom-color:var(--accent)}
+.wt-input::placeholder{color:var(--text3);opacity:1}
 .wt-unit{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.04em;width:24px}
-.acl-card .wt-rows{border-top-color:var(--acl-border)}
 .set-input:focus{border-color:var(--accent-border)}
 .set-input::placeholder{color:var(--text3);font-size:11px}
 .set-unit{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);width:28px;flex-shrink:0}
@@ -1571,26 +1577,48 @@ function buildGym(which){
     block.ex.forEach(ex=>{
       const tag=ex.tag?`<span class="tag-pill t-${ex.tag}">${ex.tag}</span>`:'';
       const wkey=`${ex.id}_p${curPhaseId}_w${wk}`;
-      // Weights: always-visible inline inputs. No button, no panel.
-      // Faded (placeholder) = previous week's weight. Solid white = this week's entry.
+      // Weights: collapsed summary → tap to expand individual set inputs
       let weightRows = '';
       if (ex.w && ex.n > 0) {
-        const wtResult = getWtsWithCarryOver(ex.id, curPhaseId, wk);
-        const prevWts  = wtResult.data;
-        const thisWts  = getWts(ex.id, curPhaseId, wk);
-        weightRows = Array.from({length: ex.n}, (_, si) => {
+        const wtResult  = getWtsWithCarryOver(ex.id, curPhaseId, wk);
+        const prevWts   = wtResult.data;
+        const thisWts   = getWts(ex.id, curPhaseId, wk);
+        const hasThisWk = Object.keys(thisWts).length > 0;
+        const hasPrev   = Object.keys(prevWts).length > 0;
+
+        // Build summary text — all kg values joined, or placeholder
+        const summaryKgs = Array.from({length: ex.n}, (_, si) => {
+          return thisWts['k'+si] || prevWts['k'+si] || null;
+        }).filter(Boolean);
+        const summaryText = summaryKgs.length > 0
+          ? summaryKgs.join(' / ') + ' kg'
+          : '— kg';
+        const summaryFaded = !hasThisWk; // faded grey if not yet logged this week
+
+        // Build expanded set rows (hidden by default, shown when toggled)
+        const setRows = Array.from({length: ex.n}, (_, si) => {
           const thisK = thisWts['k'+si] || '';
           const thisR = thisWts['r'+si] || '';
           const prevK = prevWts['k'+si] || '';
           const prevR = prevWts['r'+si] || '';
           return `<div class="wt-row">
             <span class="set-num">S${si+1}</span>
-            <input class="wt-input" type="number" inputmode="decimal" placeholder="${prevK||'—'}" value="${thisK}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'k${si}',this.value)">
+            <input class="wt-input" type="number" inputmode="decimal" placeholder="${prevK||'—'}" value="${thisK}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'k${si}',this.value);updateWtSummary('${wkey}')">
             <span class="wt-unit">kg</span>
             <input class="wt-input" type="number" inputmode="numeric" placeholder="${prevR||'—'}" value="${thisR}" onchange="saveWt('${ex.id}',${curPhaseId},${wk},'r${si}',this.value)">
             <span class="wt-unit">reps</span>
           </div>`;
         }).join('');
+
+        weightRows = `<div class="wt-block" id="wtb-${wkey}">
+          <div class="wt-summary${summaryFaded?' faded':''}" onclick="toggleWtBlock('${wkey}')" id="wts-${wkey}">
+            <span class="wt-summary-text">${summaryText}</span>
+            <span class="wt-summary-chevron">›</span>
+          </div>
+          <div class="wt-detail" id="wtd-${wkey}" style="display:none">
+            ${setRows}
+          </div>
+        </div>`;
       }
       const wBtn = '';
       const panel = '';
@@ -1601,7 +1629,7 @@ function buildGym(which){
           <div class="ex-left">${tag}<span class="ex-name">${ex.name}</span>${ex.note?`<div class="ex-note">${ex.note}</div>`:''}</div>
           <div class="ex-right"><span class="ex-sets">${ex.sets}</span></div>
         </div>
-        ${weightRows ? `<div class="wt-rows">${weightRows}</div>` : ''}
+        ${weightRows}
       </div>`;
     });
     html+=`</div>`;
@@ -2175,6 +2203,32 @@ function openDataScreen() {
 function goOverviewFromData() {
   renderOverview();
   slideBack('overview', 'data');
+}
+
+
+// ── WEIGHT BLOCK TOGGLE ───────────────────────────────────────────────
+function toggleWtBlock(wkey) {
+  const detail   = document.getElementById('wtd-' + wkey);
+  const chevron  = document.querySelector('#wts-' + wkey + ' .wt-summary-chevron');
+  const isOpen   = detail && detail.style.display !== 'none';
+  if (detail)  detail.style.display  = isOpen ? 'none' : 'block';
+  if (chevron) chevron.textContent   = isOpen ? '›' : '‹';
+}
+
+// Called after each kg input change — rebuilds the summary text
+function updateWtSummary(wkey) {
+  const summaryEl = document.getElementById('wts-' + wkey);
+  const textEl    = summaryEl ? summaryEl.querySelector('.wt-summary-text') : null;
+  if (!textEl) return;
+  // Collect all kg inputs in the detail block
+  const detail = document.getElementById('wtd-' + wkey);
+  if (!detail) return;
+  const kgInputs = detail.querySelectorAll('input[inputmode="decimal"]');
+  const vals = Array.from(kgInputs).map(i => i.value || i.placeholder).filter(v => v && v !== '—');
+  textEl.textContent = vals.length > 0 ? vals.join(' / ') + ' kg' : '— kg';
+  // Once any value is entered, make summary solid (not faded)
+  const anyEntered = Array.from(kgInputs).some(i => i.value);
+  summaryEl.classList.toggle('faded', !anyEntered);
 }
 
 // ── AUTO-OPEN CURRENT PHASE & WEEK ──
