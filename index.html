@@ -200,15 +200,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .set-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);width:26px;flex-shrink:0}
 .set-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:8px 6px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none}
 .set-input::placeholder{color:var(--text3);opacity:1}
-/* Collapsible weight block */
-.wt-block{border-top:1px solid var(--border)}
-.acl-card .wt-block{border-top-color:var(--acl-border)}
-.wt-summary{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;cursor:pointer;gap:8px}
-.wt-summary:active{opacity:0.7}
-.wt-summary-text{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);flex:1}
-.wt-summary.faded .wt-summary-text{color:var(--text3)}
-.wt-summary-chevron{font-family:'DM Mono',monospace;font-size:14px;color:var(--text3);flex-shrink:0;transition:transform 0.15s}
-.wt-detail{padding:4px 14px 10px;display:flex;flex-direction:column;gap:6px;background:var(--bg2)}
+/* Option B — inset pill weight block */
+.wt-block{padding:4px 14px 8px}
+.wt-pill{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:6px;cursor:pointer;background:var(--bg2)}
+.wt-pill:active{opacity:0.7}
+.wt-pill-last{background:var(--bg2)}
+.wt-pill-this{background:#0f1a00;border:1px solid #1e2e00}
+.wt-pill-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0;width:24px}
+.wt-pill-last .wt-pill-label{color:var(--text3)}
+.wt-pill-this .wt-pill-label{color:#4a7a20}
+.wt-pill-text{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);flex:1}
+.wt-pill-text-solid{color:var(--text)}
+.wt-pill-chevron{font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);flex-shrink:0}
+.wt-pill-this .wt-pill-chevron{color:#4a7a20}
+.wt-detail{padding:8px 14px 4px;display:flex;flex-direction:column;gap:6px;background:var(--bg2);border-radius:0 0 6px 6px;margin-top:-2px}
 .wt-row{display:flex;align-items:center;gap:7px}
 .wt-input{width:62px;background:transparent;border:none;border-bottom:1px solid var(--border2);padding:4px 4px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none;border-radius:0}
 .wt-input:focus{border-bottom-color:var(--accent)}
@@ -1577,25 +1582,28 @@ function buildGym(which){
     block.ex.forEach(ex=>{
       const tag=ex.tag?`<span class="tag-pill t-${ex.tag}">${ex.tag}</span>`:'';
       const wkey=`${ex.id}_p${curPhaseId}_w${wk}`;
-      // Weights: collapsed summary → tap to expand individual set inputs
+      // Weights: Option B — inset pill with 'last'/'this' label + chevron
       let weightRows = '';
       if (ex.w && ex.n > 0) {
         const wtResult  = getWtsWithCarryOver(ex.id, curPhaseId, wk);
         const prevWts   = wtResult.data;
         const thisWts   = getWts(ex.id, curPhaseId, wk);
         const hasThisWk = Object.keys(thisWts).length > 0;
-        const hasPrev   = Object.keys(prevWts).length > 0;
 
-        // Build summary text — all kg values joined, or placeholder
+        // Summary text — all kg values from this week or previous
         const summaryKgs = Array.from({length: ex.n}, (_, si) => {
           return thisWts['k'+si] || prevWts['k'+si] || null;
         }).filter(Boolean);
         const summaryText = summaryKgs.length > 0
           ? summaryKgs.join(' / ') + ' kg'
           : '— kg';
-        const summaryFaded = !hasThisWk; // faded grey if not yet logged this week
 
-        // Build expanded set rows (hidden by default, shown when toggled)
+        // Pill label and style: 'last' (faded) or 'this' (accented green)
+        const pillLabel    = hasThisWk ? 'this' : 'last';
+        const pillClass    = hasThisWk ? 'wt-pill wt-pill-this' : 'wt-pill wt-pill-last';
+        const textClass    = hasThisWk ? 'wt-pill-text wt-pill-text-solid' : 'wt-pill-text';
+
+        // Expanded set rows
         const setRows = Array.from({length: ex.n}, (_, si) => {
           const thisK = thisWts['k'+si] || '';
           const thisR = thisWts['r'+si] || '';
@@ -1611,9 +1619,10 @@ function buildGym(which){
         }).join('');
 
         weightRows = `<div class="wt-block" id="wtb-${wkey}">
-          <div class="wt-summary${summaryFaded?' faded':''}" onclick="toggleWtBlock('${wkey}')" id="wts-${wkey}">
-            <span class="wt-summary-text">${summaryText}</span>
-            <span class="wt-summary-chevron">›</span>
+          <div class="${pillClass}" onclick="toggleWtBlock('${wkey}')" id="wts-${wkey}">
+            <span class="wt-pill-label">${pillLabel}</span>
+            <span class="${textClass}" id="wttext-${wkey}">${summaryText}</span>
+            <span class="wt-pill-chevron">›</span>
           </div>
           <div class="wt-detail" id="wtd-${wkey}" style="display:none">
             ${setRows}
@@ -2217,18 +2226,23 @@ function toggleWtBlock(wkey) {
 
 // Called after each kg input change — rebuilds the summary text
 function updateWtSummary(wkey) {
-  const summaryEl = document.getElementById('wts-' + wkey);
-  const textEl    = summaryEl ? summaryEl.querySelector('.wt-summary-text') : null;
-  if (!textEl) return;
-  // Collect all kg inputs in the detail block
   const detail = document.getElementById('wtd-' + wkey);
-  if (!detail) return;
+  const textEl = document.getElementById('wttext-' + wkey);
+  const pillEl = document.getElementById('wts-' + wkey);
+  if (!detail || !textEl || !pillEl) return;
   const kgInputs = detail.querySelectorAll('input[inputmode="decimal"]');
-  const vals = Array.from(kgInputs).map(i => i.value || i.placeholder).filter(v => v && v !== '—');
-  textEl.textContent = vals.length > 0 ? vals.join(' / ') + ' kg' : '— kg';
-  // Once any value is entered, make summary solid (not faded)
-  const anyEntered = Array.from(kgInputs).some(i => i.value);
-  summaryEl.classList.toggle('faded', !anyEntered);
+  const vals = Array.from(kgInputs).map(i => i.value).filter(Boolean);
+  const allVals = Array.from(kgInputs).map(i => i.value || i.placeholder).filter(v => v && v !== '—');
+  // Update text
+  textEl.textContent = allVals.length > 0 ? allVals.join(' / ') + ' kg' : '— kg';
+  // Switch pill style once any value entered
+  const anyEntered = vals.length > 0;
+  if (anyEntered) {
+    pillEl.className = 'wt-pill wt-pill-this';
+    textEl.className = 'wt-pill-text wt-pill-text-solid';
+    const lbl = pillEl.querySelector('.wt-pill-label');
+    if (lbl) lbl.textContent = 'this';
+  }
 }
 
 // ── AUTO-OPEN CURRENT PHASE & WEEK ──
