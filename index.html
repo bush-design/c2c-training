@@ -161,6 +161,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .acl-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--acl);letter-spacing:0.08em;text-transform:uppercase}
 
 /* EX ROW */
+.ex-card{border-bottom:1px solid var(--border)}
+.ex-row-inner{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 14px 6px;gap:10px}
 .ex-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);gap:10px}
 .acl-card .ex-row{border-bottom-color:var(--acl-border)}
 .ex-row:last-child{border-bottom:none}
@@ -200,9 +202,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .set-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);width:26px;flex-shrink:0}
 .set-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:8px 6px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none}
 .set-input::placeholder{color:var(--text3);opacity:1}
-/* Option B — inset pill weight block */
-.wt-block{padding:4px 14px 8px}
-.wt-pill{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:6px;cursor:pointer;background:var(--bg2)}
+/* Option B — connecting indent bar */
+.wt-block{padding:0 14px 8px}
+.wt-indent{display:flex;align-items:stretch;gap:0;margin-left:6px}
+.wt-vbar{width:2px;background:var(--border2);border-radius:1px;flex-shrink:0;margin-right:10px;min-height:28px}
+.wt-vbar-done{background:rgba(74,122,32,0.5)}
+.wt-pill{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:6px;cursor:pointer;background:var(--bg2);flex:1}
 .wt-pill:active{opacity:0.7}
 .wt-pill-last{background:var(--bg2)}
 .wt-pill-this{background:#0f1a00;border:1px solid #1e2e00}
@@ -213,7 +218,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .wt-pill-text-solid{color:var(--text)}
 .wt-pill-chevron{font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);flex-shrink:0}
 .wt-pill-this .wt-pill-chevron{color:#4a7a20}
-.wt-detail{padding:8px 14px 4px;display:flex;flex-direction:column;gap:6px;background:var(--bg2);border-radius:0 0 6px 6px;margin-top:-2px}
+.wt-detail{padding:6px 10px 4px 18px;display:flex;flex-direction:column;gap:6px;margin-left:6px}
 .wt-row{display:flex;align-items:center;gap:7px}
 .wt-input{width:62px;background:transparent;border:none;border-bottom:1px solid var(--border2);padding:4px 4px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);text-align:center;outline:none;-webkit-appearance:none;border-radius:0}
 .wt-input:focus{border-bottom-color:var(--accent)}
@@ -1619,10 +1624,13 @@ function buildGym(which){
         }).join('');
 
         weightRows = `<div class="wt-block" id="wtb-${wkey}">
-          <div class="${pillClass}" onclick="toggleWtBlock('${wkey}')" id="wts-${wkey}">
-            <span class="wt-pill-label">${pillLabel}</span>
-            <span class="${textClass}" id="wttext-${wkey}">${summaryText}</span>
-            <span class="wt-pill-chevron">›</span>
+          <div class="wt-indent">
+            <div class="wt-vbar${hasThisWk?' wt-vbar-done':''}"></div>
+            <div class="${pillClass}" onclick="toggleWtBlock('${wkey}')" id="wts-${wkey}">
+              <span class="wt-pill-label">${pillLabel}</span>
+              <span class="${textClass}" id="wttext-${wkey}">${summaryText}</span>
+              <span class="wt-pill-chevron">›</span>
+            </div>
           </div>
           <div class="wt-detail" id="wtd-${wkey}" style="display:none">
             ${setRows}
@@ -1633,8 +1641,8 @@ function buildGym(which){
       const panel = '';
       const inlineWt = '';
 
-      html+=`<div>
-        <div class="ex-row">
+      html+=`<div class="ex-card">
+        <div class="ex-row-inner">
           <div class="ex-left">${tag}<span class="ex-name">${ex.name}</span>${ex.note?`<div class="ex-note">${ex.note}</div>`:''}</div>
           <div class="ex-right"><span class="ex-sets">${ex.sets}</span></div>
         </div>
